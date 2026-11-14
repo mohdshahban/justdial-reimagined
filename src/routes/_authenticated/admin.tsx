@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { Building2, Inbox, LayoutDashboard, Package, Star, Users } from "lucide-react";
+import { Building2, Cable, Inbox, LayoutDashboard, Package, Star, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DashShell } from "@/components/dash/shell";
 
@@ -17,6 +17,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
       { to: "/admin/leads", label: "Leads", icon: Inbox },
       { to: "/admin/reviews", label: "Reviews", icon: Star },
       { to: "/admin/users", label: "Users", icon: Users },
+      { to: "/admin/mcp", label: "MCP Connector", icon: Cable },
     ]}><Outlet /></DashShell>
   ),
 });

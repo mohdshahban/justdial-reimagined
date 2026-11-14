@@ -27,13 +27,17 @@ import { Route as SearchRouteImport } from './routes/search'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TravelRouteImport } from './routes/travel'
 import { Route as WriteReviewRouteImport } from './routes/write-review'
+import { Route as DotwellKnownOauthProtectedResourceRouteImport } from './routes/[.]well-known.oauth-protected-resource'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as ApiMcpRouteImport } from './routes/api.mcp'
 import { Route as BusinessIdRouteImport } from './routes/business.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
+import { Route as OauthConsentRouteImport } from './routes/oauth.consent'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminBusinessesRouteImport } from './routes/_authenticated/admin.businesses'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
+import { Route as AuthenticatedAdminMcpRouteImport } from './routes/_authenticated/admin.mcp'
 import { Route as AuthenticatedAdminProductsRouteImport } from './routes/_authenticated/admin.products'
 import { Route as AuthenticatedAdminReviewsRouteImport } from './routes/_authenticated/admin.reviews'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
@@ -43,6 +47,7 @@ import { Route as AuthenticatedDashboardLeadsRouteImport } from './routes/_authe
 import { Route as AuthenticatedDashboardPlanRouteImport } from './routes/_authenticated/dashboard.plan'
 import { Route as AuthenticatedDashboardProductsRouteImport } from './routes/_authenticated/dashboard.products'
 import { Route as AuthenticatedDashboardReviewsRouteImport } from './routes/_authenticated/dashboard.reviews'
+import { Route as DotwellKnownOauthProtectedResourceApiMcpRouteImport } from './routes/[.]well-known.oauth-protected-resource.api.mcp'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -133,6 +138,12 @@ const WriteReviewRoute = WriteReviewRouteImport.update({
   path: '/write-review',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DotwellKnownOauthProtectedResourceRoute =
+  DotwellKnownOauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -143,6 +154,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiMcpRoute = ApiMcpRouteImport.update({
+  id: '/api/mcp',
+  path: '/api/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BusinessIdRoute = BusinessIdRouteImport.update({
   id: '/business/$id',
   path: '/business/$id',
@@ -151,6 +167,11 @@ const BusinessIdRoute = BusinessIdRouteImport.update({
 const CategorySlugRoute = CategorySlugRouteImport.update({
   id: '/category/$slug',
   path: '/category/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OauthConsentRoute = OauthConsentRouteImport.update({
+  id: '/oauth/consent',
+  path: '/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
@@ -167,6 +188,11 @@ const AuthenticatedAdminBusinessesRoute =
 const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminMcpRoute = AuthenticatedAdminMcpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
 const AuthenticatedAdminProductsRoute =
@@ -222,6 +248,12 @@ const AuthenticatedDashboardReviewsRoute =
     path: '/reviews',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const DotwellKnownOauthProtectedResourceApiMcpRoute =
+  DotwellKnownOauthProtectedResourceApiMcpRouteImport.update({
+    id: '/api/mcp',
+    path: '/api/mcp',
+    getParentRoute: () => DotwellKnownOauthProtectedResourceRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -241,12 +273,16 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/travel': typeof TravelRoute
   '/write-review': typeof WriteReviewRoute
+  '/.well-known/oauth-protected-resource': typeof DotwellKnownOauthProtectedResourceRouteWithChildren
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/api/mcp': typeof ApiMcpRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/admin/businesses': typeof AuthenticatedAdminBusinessesRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/admin/mcp': typeof AuthenticatedAdminMcpRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/admin/reviews': typeof AuthenticatedAdminReviewsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -257,6 +293,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/reviews': typeof AuthenticatedDashboardReviewsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/.well-known/oauth-protected-resource/api/mcp': typeof DotwellKnownOauthProtectedResourceApiMcpRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -276,10 +313,14 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/travel': typeof TravelRoute
   '/write-review': typeof WriteReviewRoute
+  '/.well-known/oauth-protected-resource': typeof DotwellKnownOauthProtectedResourceRouteWithChildren
+  '/api/mcp': typeof ApiMcpRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/admin/businesses': typeof AuthenticatedAdminBusinessesRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/admin/mcp': typeof AuthenticatedAdminMcpRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
   '/admin/reviews': typeof AuthenticatedAdminReviewsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -290,6 +331,7 @@ export interface FileRoutesByTo {
   '/dashboard/reviews': typeof AuthenticatedDashboardReviewsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
+  '/.well-known/oauth-protected-resource/api/mcp': typeof DotwellKnownOauthProtectedResourceApiMcpRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -311,12 +353,16 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/travel': typeof TravelRoute
   '/write-review': typeof WriteReviewRoute
+  '/.well-known/oauth-protected-resource': typeof DotwellKnownOauthProtectedResourceRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/api/mcp': typeof ApiMcpRoute
   '/business/$id': typeof BusinessIdRoute
   '/category/$slug': typeof CategorySlugRoute
+  '/oauth/consent': typeof OauthConsentRoute
   '/_authenticated/admin/businesses': typeof AuthenticatedAdminBusinessesRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/_authenticated/admin/mcp': typeof AuthenticatedAdminMcpRoute
   '/_authenticated/admin/products': typeof AuthenticatedAdminProductsRoute
   '/_authenticated/admin/reviews': typeof AuthenticatedAdminReviewsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -327,6 +373,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/reviews': typeof AuthenticatedDashboardReviewsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/.well-known/oauth-protected-resource/api/mcp': typeof DotwellKnownOauthProtectedResourceApiMcpRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -348,12 +395,16 @@ export interface FileRouteTypes {
     | '/terms'
     | '/travel'
     | '/write-review'
+    | '/.well-known/oauth-protected-resource'
     | '/admin'
     | '/dashboard'
+    | '/api/mcp'
     | '/business/$id'
     | '/category/$slug'
+    | '/oauth/consent'
     | '/admin/businesses'
     | '/admin/leads'
+    | '/admin/mcp'
     | '/admin/products'
     | '/admin/reviews'
     | '/admin/users'
@@ -364,6 +415,7 @@ export interface FileRouteTypes {
     | '/dashboard/reviews'
     | '/admin/'
     | '/dashboard/'
+    | '/.well-known/oauth-protected-resource/api/mcp'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -383,10 +435,14 @@ export interface FileRouteTypes {
     | '/terms'
     | '/travel'
     | '/write-review'
+    | '/.well-known/oauth-protected-resource'
+    | '/api/mcp'
     | '/business/$id'
     | '/category/$slug'
+    | '/oauth/consent'
     | '/admin/businesses'
     | '/admin/leads'
+    | '/admin/mcp'
     | '/admin/products'
     | '/admin/reviews'
     | '/admin/users'
@@ -397,6 +453,7 @@ export interface FileRouteTypes {
     | '/dashboard/reviews'
     | '/admin'
     | '/dashboard'
+    | '/.well-known/oauth-protected-resource/api/mcp'
   id:
     | '__root__'
     | '/'
@@ -417,12 +474,16 @@ export interface FileRouteTypes {
     | '/terms'
     | '/travel'
     | '/write-review'
+    | '/.well-known/oauth-protected-resource'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
+    | '/api/mcp'
     | '/business/$id'
     | '/category/$slug'
+    | '/oauth/consent'
     | '/_authenticated/admin/businesses'
     | '/_authenticated/admin/leads'
+    | '/_authenticated/admin/mcp'
     | '/_authenticated/admin/products'
     | '/_authenticated/admin/reviews'
     | '/_authenticated/admin/users'
@@ -433,6 +494,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/reviews'
     | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
+    | '/.well-known/oauth-protected-resource/api/mcp'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -454,8 +516,11 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TravelRoute: typeof TravelRoute
   WriteReviewRoute: typeof WriteReviewRoute
+  DotwellKnownOauthProtectedResourceRoute: typeof DotwellKnownOauthProtectedResourceRouteWithChildren
+  ApiMcpRoute: typeof ApiMcpRoute
   BusinessIdRoute: typeof BusinessIdRoute
   CategorySlugRoute: typeof CategorySlugRoute
+  OauthConsentRoute: typeof OauthConsentRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -586,6 +651,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WriteReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof DotwellKnownOauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -600,6 +672,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/mcp': {
+      id: '/api/mcp'
+      path: '/api/mcp'
+      fullPath: '/api/mcp'
+      preLoaderRoute: typeof ApiMcpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/business/$id': {
       id: '/business/$id'
       path: '/business/$id'
@@ -612,6 +691,13 @@ declare module '@tanstack/react-router' {
       path: '/category/$slug'
       fullPath: '/category/$slug'
       preLoaderRoute: typeof CategorySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oauth/consent': {
+      id: '/oauth/consent'
+      path: '/oauth/consent'
+      fullPath: '/oauth/consent'
+      preLoaderRoute: typeof OauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/': {
@@ -633,6 +719,13 @@ declare module '@tanstack/react-router' {
       path: '/leads'
       fullPath: '/admin/leads'
       preLoaderRoute: typeof AuthenticatedAdminLeadsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/mcp': {
+      id: '/_authenticated/admin/mcp'
+      path: '/mcp'
+      fullPath: '/admin/mcp'
+      preLoaderRoute: typeof AuthenticatedAdminMcpRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/products': {
@@ -698,12 +791,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardReviewsRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/.well-known/oauth-protected-resource/api/mcp': {
+      id: '/.well-known/oauth-protected-resource/api/mcp'
+      path: '/api/mcp'
+      fullPath: '/.well-known/oauth-protected-resource/api/mcp'
+      preLoaderRoute: typeof DotwellKnownOauthProtectedResourceApiMcpRouteImport
+      parentRoute: typeof DotwellKnownOauthProtectedResourceRoute
+    }
   }
 }
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminBusinessesRoute: typeof AuthenticatedAdminBusinessesRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
+  AuthenticatedAdminMcpRoute: typeof AuthenticatedAdminMcpRoute
   AuthenticatedAdminProductsRoute: typeof AuthenticatedAdminProductsRoute
   AuthenticatedAdminReviewsRoute: typeof AuthenticatedAdminReviewsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
@@ -713,6 +814,7 @@ interface AuthenticatedAdminRouteChildren {
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminBusinessesRoute: AuthenticatedAdminBusinessesRoute,
   AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
+  AuthenticatedAdminMcpRoute: AuthenticatedAdminMcpRoute,
   AuthenticatedAdminProductsRoute: AuthenticatedAdminProductsRoute,
   AuthenticatedAdminReviewsRoute: AuthenticatedAdminReviewsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
@@ -760,6 +862,21 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface DotwellKnownOauthProtectedResourceRouteChildren {
+  DotwellKnownOauthProtectedResourceApiMcpRoute: typeof DotwellKnownOauthProtectedResourceApiMcpRoute
+}
+
+const DotwellKnownOauthProtectedResourceRouteChildren: DotwellKnownOauthProtectedResourceRouteChildren =
+  {
+    DotwellKnownOauthProtectedResourceApiMcpRoute:
+      DotwellKnownOauthProtectedResourceApiMcpRoute,
+  }
+
+const DotwellKnownOauthProtectedResourceRouteWithChildren =
+  DotwellKnownOauthProtectedResourceRoute._addFileChildren(
+    DotwellKnownOauthProtectedResourceRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -779,8 +896,12 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TravelRoute: TravelRoute,
   WriteReviewRoute: WriteReviewRoute,
+  DotwellKnownOauthProtectedResourceRoute:
+    DotwellKnownOauthProtectedResourceRouteWithChildren,
+  ApiMcpRoute: ApiMcpRoute,
   BusinessIdRoute: BusinessIdRoute,
   CategorySlugRoute: CategorySlugRoute,
+  OauthConsentRoute: OauthConsentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
