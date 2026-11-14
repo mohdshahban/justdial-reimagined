@@ -48,6 +48,7 @@ import { Route as AuthenticatedDashboardPlanRouteImport } from './routes/_authen
 import { Route as AuthenticatedDashboardProductsRouteImport } from './routes/_authenticated/dashboard.products'
 import { Route as AuthenticatedDashboardReviewsRouteImport } from './routes/_authenticated/dashboard.reviews'
 import { Route as DotwellKnownOauthProtectedResourceApiMcpRouteImport } from './routes/[.]well-known.oauth-protected-resource.api.mcp'
+import { Route as LocalCityAreaCategoryRouteImport } from './routes/local.$city.$area.$category'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -254,6 +255,11 @@ const DotwellKnownOauthProtectedResourceApiMcpRoute =
     path: '/api/mcp',
     getParentRoute: () => DotwellKnownOauthProtectedResourceRoute,
   } as any)
+const LocalCityAreaCategoryRoute = LocalCityAreaCategoryRouteImport.update({
+  id: '/local/$city/$area/$category',
+  path: '/local/$city/$area/$category',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -294,6 +300,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/.well-known/oauth-protected-resource/api/mcp': typeof DotwellKnownOauthProtectedResourceApiMcpRoute
+  '/local/$city/$area/$category': typeof LocalCityAreaCategoryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -332,6 +339,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/.well-known/oauth-protected-resource/api/mcp': typeof DotwellKnownOauthProtectedResourceApiMcpRoute
+  '/local/$city/$area/$category': typeof LocalCityAreaCategoryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -374,6 +382,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/.well-known/oauth-protected-resource/api/mcp': typeof DotwellKnownOauthProtectedResourceApiMcpRoute
+  '/local/$city/$area/$category': typeof LocalCityAreaCategoryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -416,6 +425,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/dashboard/'
     | '/.well-known/oauth-protected-resource/api/mcp'
+    | '/local/$city/$area/$category'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -454,6 +464,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/.well-known/oauth-protected-resource/api/mcp'
+    | '/local/$city/$area/$category'
   id:
     | '__root__'
     | '/'
@@ -495,6 +506,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
     | '/.well-known/oauth-protected-resource/api/mcp'
+    | '/local/$city/$area/$category'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -521,6 +533,7 @@ export interface RootRouteChildren {
   BusinessIdRoute: typeof BusinessIdRoute
   CategorySlugRoute: typeof CategorySlugRoute
   OauthConsentRoute: typeof OauthConsentRoute
+  LocalCityAreaCategoryRoute: typeof LocalCityAreaCategoryRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -798,6 +811,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DotwellKnownOauthProtectedResourceApiMcpRouteImport
       parentRoute: typeof DotwellKnownOauthProtectedResourceRoute
     }
+    '/local/$city/$area/$category': {
+      id: '/local/$city/$area/$category'
+      path: '/local/$city/$area/$category'
+      fullPath: '/local/$city/$area/$category'
+      preLoaderRoute: typeof LocalCityAreaCategoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -902,6 +922,7 @@ const rootRouteChildren: RootRouteChildren = {
   BusinessIdRoute: BusinessIdRoute,
   CategorySlugRoute: CategorySlugRoute,
   OauthConsentRoute: OauthConsentRoute,
+  LocalCityAreaCategoryRoute: LocalCityAreaCategoryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

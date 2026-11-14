@@ -1,6 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bell, Building2, CalendarCheck, Home, Search, User, Facebook, Instagram, Twitter, Youtube, Linkedin } from "lucide-react";
-import { useState } from "react";
+import { Building2, CalendarCheck, Home, Search, User } from "lucide-react";
 import { CATEGORIES, CITIES } from "@/data/catalog";
 import { SearchBar } from "./search-bar";
 import { btnClass } from "./ui";
@@ -30,7 +29,6 @@ export function Logo({ light }: { light?: boolean }) {
 
 export function Header() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const [lang, setLang] = useState<"EN" | "हिं">("EN");
   const showSearch = path !== "/";
   return (
     <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur-lg">
@@ -42,12 +40,11 @@ export function Header() {
           <Link to="/offers" className="hidden rounded-lg px-3 py-2 hover:bg-muted lg:block">Offers</Link>
           <Link to="/travel" className="hidden rounded-lg px-3 py-2 hover:bg-muted xl:block">Travel</Link>
           <Link to="/advertise" className="hidden rounded-lg px-3 py-2 hover:bg-muted lg:block">Advertise</Link>
-          <button onClick={() => setLang(lang === "EN" ? "हिं" : "EN")} className="rounded-lg px-3 py-2 hover:bg-muted" aria-label="Switch language">{lang}</button>
-          <button className="hidden rounded-lg p-2 hover:bg-muted sm:block" aria-label="Notifications"><Bell className="size-5" /></button>
           <Link to="/free-listing" className={cn(btnClass("outline"), "hidden xl:inline-flex")}>Free listing</Link>
           <AccountButton />
         </nav>
       </div>
+      {showSearch && <div className="container-page pb-3 md:hidden"><SearchBar size="sm" /></div>}
     </header>
   );
 }
@@ -78,10 +75,7 @@ export function Footer() {
       <div className="container-page grid gap-10 py-16 md:grid-cols-5">
         <div className="md:col-span-2">
           <Logo light />
-          <p className="mt-4 max-w-sm text-sm text-ink-muted">India's local search engine. Find, compare and connect with trusted businesses near you — in one search.</p>
-          <div className="mt-6 flex gap-2">
-            {[Facebook, Instagram, Twitter, Youtube, Linkedin].map((I, i) => <a key={i} href="#" aria-label="Social link" className="grid size-10 place-items-center rounded-xl bg-ink-foreground/10 hover:bg-ink-foreground/20"><I className="size-4" /></a>)}
-          </div>
+          <p className="mt-4 max-w-sm text-sm text-ink-muted">Discover approved local business listings, browse services and contact providers directly. An independent directory redesign concept.</p>
         </div>
         <div>
           <h3 className="mb-3 text-sm font-bold">Company</h3>
@@ -118,7 +112,7 @@ export function Footer() {
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-muted">
           {CATEGORIES.slice(0, 20).map((c) => <Link key={c.slug} to="/category/$slug" params={{ slug: c.slug }} className="hover:text-ink-foreground">{c.name}</Link>)}
         </div>
-        <div className="mt-6 flex flex-wrap gap-4 text-xs text-ink-muted"><span>© 2026 Justdial Ltd. Redesign concept.</span><Link to="/terms" className="hover:text-ink-foreground">Terms</Link><Link to="/privacy" className="hover:text-ink-foreground">Privacy</Link><Link to="/about" className="hover:text-ink-foreground">About</Link></div>
+        <div className="mt-6 flex flex-wrap gap-4 text-xs text-ink-muted"><span>© 2026 Directory redesign concept. Not affiliated with Justdial Ltd.</span><Link to="/terms" className="hover:text-ink-foreground">Terms</Link><Link to="/privacy" className="hover:text-ink-foreground">Privacy</Link><Link to="/about" className="hover:text-ink-foreground">About</Link></div>
       </div>
     </footer>
   );

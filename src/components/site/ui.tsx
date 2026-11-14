@@ -6,6 +6,7 @@ import { getCategory, type Business } from "@/data/catalog";
 import { DynIcon } from "./icon";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { phoneHref, whatsappUrl } from "@/lib/discovery";
 
 export function RatingBadge({ rating, className }: { rating: number; className?: string }) {
   if (!rating) return <span className={cn("inline-flex rounded-lg bg-saffron-soft px-2 py-0.5 text-sm font-bold text-ink", className)}>New</span>;
@@ -77,6 +78,8 @@ export function MiniBusinessCard({ b }: { b: Business }) {
 
 export function BusinessCard({ b }: { b: Business }) {
   const cat = getCategory(b.category);
+  const call = phoneHref(b.phone);
+  const whatsapp = whatsappUrl(b.whatsapp);
   return (
     <article className="flex flex-col gap-4 rounded-3xl border bg-card p-4 shadow-soft sm:flex-row">
       <Link to="/business/$id" params={{ id: b.id }} className="relative shrink-0 overflow-hidden rounded-2xl sm:w-56">
@@ -100,19 +103,19 @@ export function BusinessCard({ b }: { b: Business }) {
           <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">{cat?.name} · {b.sub}</span>
           {b.tags.map((t) => <span key={t} className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">{t}</span>)}
         </div>
-        <p className="mt-2 line-clamp-1 text-sm italic text-muted-foreground">“{b.highlight}”</p>
+        {b.services.length > 0 && <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">{b.services.slice(0, 3).map((service) => <span key={service.name} className="rounded-lg border px-2 py-1">{service.name}{service.price && ` · ${service.price}`}</span>)}</div>}
+        {b.highlight && <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{b.highlight}</p>}
         <div className="mt-auto flex flex-wrap gap-2 pt-3">
-          <a href={`tel:${b.phone}`} className={btnClass("ink")}><Phone className="size-4" />Call</a>
-          <button onClick={() => toast.success(`Opening WhatsApp chat with ${b.name}`)} className={cn(btnClass("outline"), "text-success")}><MessageCircle className="size-4" />WhatsApp</button>
-          {b.live ? <Link to="/business/$id" params={{ id: b.id }} hash="enquire" className={btnClass("primary")}><Send className="size-4" />Get best price</Link>
-            : <button onClick={() => toast.success(`Enquiry sent to ${b.name}. They'll call you shortly.`)} className={btnClass("primary")}><Send className="size-4" />Get best price</button>}
+          {call && <a href={call} className={btnClass("ink")}><Phone className="size-4" />Call</a>}
+          {whatsapp && <a href={whatsapp} target="_blank" rel="noreferrer" className={cn(btnClass("outline"), "text-success")}><MessageCircle className="size-4" />WhatsApp</a>}
+          <Link to="/business/$id" params={{ id: b.id }} hash="enquire" className={btnClass("primary")}><Send className="size-4" />Get best price</Link>
         </div>
       </div>
     </article>
   );
 }
 
-export function EnquiryForm({ title = "Get the best price", subtitle, cta = "Send enquiry", businessId, initialMessage = "", onSent, unframed = false }: { title?: string; subtitle?: string; cta?: string; businessId?: string | undefined; initialMessage?: string; onSent?: () => void; unframed?: boolean }) {
+export function EnquiryForm({ title = "Get the best price", subtitle, cta = "Send enquiry", businessId, businessIds, initialMessage = "", onSent, unframed = false }: { title?: string; subtitle?: string; cta?: string; businessId?: string | undefined; businessIds?: string[]; initialMessage?: string; onSent?: () => void; unframed?: boolean }) {
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
   const [msg, setMsg] = useState(initialMessage);
@@ -121,16 +124,22 @@ export function EnquiryForm({ title = "Get the best price", subtitle, cta = "Sen
     <form
       onSubmit={async (e) => {
         e.preventDefault();
+        if (busy) return;
         if (!/^[6-9]\d{9}$/.test(phone)) { toast.error("Please enter a valid 10-digit mobile number"); return; }
-        if (businessId) {
-          setBusy(true);
-          const { error } = await supabase.from("leads").insert({ business_id: businessId, name: name.trim(), phone, message: msg.trim() });
-          setBusy(false);
+        const targets = [...new Set([...(businessId ? [businessId] : []), ...(businessIds ?? [])])].slice(0, 5);
+        if (!targets.length) { toast.error("No matching businesses available. Please select a listing first."); return; }
+        setBusy(true);
+        try {
+          const { error } = await supabase.from("leads").insert(targets.map((id) => ({ business_id: id, name: name.trim(), phone, message: msg.trim() })));
           if (error) { toast.error("Couldn't send your enquiry. Please try again."); return; }
-          toast.success("Enquiry sent! The business will call you shortly.");
-        } else toast.success("Done! Top businesses will call you within minutes.");
-        setPhone(""); setName(""); setMsg("");
-        onSent?.();
+          toast.success(`Enquiry sent to ${targets.length} ${targets.length === 1 ? "business" : "businesses"}.`);
+          setPhone(""); setName(""); setMsg("");
+          onSent?.();
+        } catch {
+          toast.error("Couldn't send your enquiry. Please try again.");
+        } finally {
+          setBusy(false);
+        }
       }}
       className={unframed ? "space-y-3" : "rounded-3xl border bg-card p-5 shadow-soft"}
     >
@@ -142,9 +151,9 @@ export function EnquiryForm({ title = "Get the best price", subtitle, cta = "Sen
           <span className="grid place-items-center border-r px-3 text-sm font-semibold text-muted-foreground">+91</span>
           <input required aria-label="Mobile number" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} inputMode="numeric" placeholder="Mobile number" className="min-w-0 w-full bg-transparent px-3 text-sm outline-none" />
         </div>
-        {businessId && <textarea aria-label="Your requirement" value={msg} onChange={(e) => setMsg(e.target.value)} maxLength={1000} rows={3} placeholder="What do you need? (optional)" className="w-full rounded-xl border border-input bg-background p-3 text-sm" />}
-        <Btn type="submit" disabled={busy} className="w-full">{busy ? "Sending…" : cta}</Btn>
-        <p className="text-center text-xs text-muted-foreground">Free · No spam · Your number is shared only with matching businesses</p>
+        <textarea aria-label="Your requirement" value={msg} onChange={(e) => setMsg(e.target.value)} maxLength={1000} rows={3} placeholder="What do you need? (optional)" className="w-full rounded-xl border border-input bg-background p-3 text-sm" />
+        <Btn type="submit" disabled={busy || (!businessId && !businessIds?.length)} className="w-full">{busy ? "Sending…" : cta}</Btn>
+        <p className="text-center text-xs text-muted-foreground">{businessId ? "Sent to this business" : `Shared with up to ${Math.min(5, businessIds?.length ?? 0)} matching businesses`} · No spam</p>
       </div>
     </form>
   );

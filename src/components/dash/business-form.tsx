@@ -41,17 +41,18 @@ function Chips({ options, value, onChange }: { options: string[]; value: string[
   );
 }
 
-export function BusinessForm({ initial, ownerId, onDone }: { initial?: Row | undefined; ownerId: string; onDone: () => void }) {
+export type ListingPrefill = { name: string; phone: string; city: string; cat: string };
+export function BusinessForm({ initial, prefill, ownerId, onDone }: { initial?: Row | undefined; prefill?: ListingPrefill; ownerId: string; onDone: () => void }) {
   const qc = useQueryClient();
   const [f, setF] = useState({
-    name: initial?.name ?? "", category: initial?.category ?? "restaurants", sub: initial?.sub ?? "", city: initial?.city ?? "Mumbai",
+    name: initial?.name ?? prefill?.name ?? "", category: initial?.category ?? prefill?.cat ?? "restaurants", sub: initial?.sub ?? "", city: initial?.city ?? prefill?.city ?? "Noida",
     area: initial?.area ?? "", address: initial?.address ?? "", landmark: initial?.landmark ?? "", pincode: initial?.pincode ?? "",
-    phone: initial?.phone ?? "", whatsapp: initial?.whatsapp ?? "", email: initial?.email ?? "", website: initial?.website ?? "",
-    price: initial?.price ?? "", hours: initial?.hours ?? "10:00 am – 8:00 pm", description: initial?.description ?? "",
+    phone: initial?.phone ?? prefill?.phone ?? "", whatsapp: initial?.whatsapp ?? "", email: initial?.email ?? "", website: initial?.website ?? "",
+    price: initial?.price ?? "", hours: initial?.hours ?? "", description: initial?.description ?? "",
     tags: (initial?.tags ?? []).join(", "), year: initial?.year_established ? String(initial.year_established) : "",
   });
-  const [days, setDays] = useState<string[]>(initial?.days_open ?? DAYS.slice(0, 6));
-  const [payments, setPayments] = useState<string[]>(initial?.payment_methods ?? ["Cash", "UPI"]);
+  const [days, setDays] = useState<string[]>(initial?.days_open ?? []);
+  const [payments, setPayments] = useState<string[]>(initial?.payment_methods ?? []);
   const [services, setServices] = useState<Service[]>(Array.isArray(initial?.services) ? (initial!.services as Service[]) : []);
   const [photos, setPhotos] = useState<string[]>(initial?.photos ?? []);
   const [logo, setLogo] = useState<string | null>(initial?.logo ?? null);
@@ -92,7 +93,7 @@ export function BusinessForm({ initial, ownerId, onDone }: { initial?: Row | und
     if (f.pincode && !/^\d{6}$/.test(f.pincode)) { toast.error("Pincode must be 6 digits"); return; }
     const year = f.year ? Number(f.year) : null;
     if (year && (year < 1800 || year > new Date().getFullYear())) { toast.error("Enter a valid year of establishment"); return; }
-    if (!days.length) { toast.error("Pick at least one open day"); return; }
+    if (f.hours && !days.length) { toast.error("Select open days when providing opening hours"); return; }
     setBusy(true);
     const { year: _y, tags, ...rest } = f;
     const website = f.website.trim() && !/^https?:\/\//.test(f.website.trim()) ? `https://${f.website.trim()}` : f.website.trim();

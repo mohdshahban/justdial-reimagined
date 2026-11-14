@@ -1,6 +1,7 @@
 import restaurant from "@/assets/biz-restaurant.jpg";
 import clinic from "@/assets/biz-clinic.jpg";
 import repair from "@/assets/biz-repair.jpg";
+import type { Coordinates } from "@/lib/discovery";
 
 export const CITIES = ["Noida", "Mumbai", "Delhi", "Bengaluru", "Chennai", "Hyderabad", "Pune", "Kolkata", "Ahmedabad"] as const;
 export type City = (typeof CITIES)[number];
@@ -51,6 +52,7 @@ export type Business = {
   id: string; name: string; category: string; sub: string; city: City; area: string;
   rating: number; reviews: number; years: number; verified: boolean; trust: boolean; sponsored: boolean;
   open: boolean; hours: string; distance: number; phone: string; image: string; tags: string[];
+  openKnown?: boolean; coords?: Coordinates;
   highlight: string; price: string; services: { name: string; price: string }[]; reviewList: Review[];
   live?: boolean; description?: string; address?: string;
   gallery?: string[]; logo?: string | undefined; website?: string; email?: string; whatsapp?: string; landmark?: string; pincode?: string; payments?: string[]; days?: string[];
@@ -139,15 +141,20 @@ export const BUSINESSES: Business[] = SEED.flatMap((s, si) =>
 
 export const getBusiness = (id: string) => BUSINESSES.find((b) => b.id === id);
 
-export function searchBusinesses(q = "", city?: string, list: Business[] = BUSINESSES) {
-  const t = q.trim().toLowerCase();
-  return list.filter((b) => {
-    if (city && b.city !== city) return false;
-    if (!t) return true;
-    const cat = getCategory(b.category);
-    return [b.name, b.sub, cat?.name, b.area, ...b.tags].some((f) => f?.toLowerCase().includes(t)) ||
-      (cat?.name.toLowerCase().split(/[ &]+/).some((w) => w && t.includes(w)) ?? false);
-  }).sort((a, b) => Number(b.city === city) - Number(a.city === city) || Number(b.sponsored) - Number(a.sponsored));
+export function searchBusinesses(q = "", city?: string, list: Business[] = []) {
+  const t = q.trim().toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  const tokens = t.split(" ").filter(Boolean);
+  const scored = list.filter((b) => !city || b.city === city).map((b) => {
+    const category = getCategory(b.category)?.name.toLowerCase() ?? "";
+    const name = b.name.toLowerCase();
+    const searchable = [name, category, b.sub, b.area, b.description, ...b.tags, ...b.services.map((s) => s.name)]
+      .filter(Boolean).join(" ").toLowerCase().replace(/[^a-z0-9 ]/g, " ");
+    const matches = tokens.every((token) => searchable.includes(token));
+    const score = (name.includes(t) ? 6 : 0) + (category.includes(t) ? 5 : 0) +
+      (b.sub.toLowerCase().includes(t) ? 3 : 0) + (b.sponsored ? 1 : 0);
+    return { b, score, matches: tokens.length === 0 || matches };
+  });
+  return scored.filter((entry) => entry.matches).sort((a, b) => b.score - a.score || b.b.reviews - a.b.reviews).map((entry) => entry.b);
 }
 
 export const STATS = [
