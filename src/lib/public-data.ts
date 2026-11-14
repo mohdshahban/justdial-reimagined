@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { categoryImage, type Business, type City } from "@/data/catalog";
 import { photoUrls } from "@/lib/photos";
+import { openNow, parseCoordinates } from "@/lib/discovery";
 
 type Row = Tables<"businesses"> & { reviews?: Pick<Tables<"reviews">, "name" | "rating" | "text" | "created_at" | "owner_reply">[] };
 export type Service = { name: string; price: string };
@@ -12,11 +13,12 @@ export function rowToBusiness(r: Row, urls: Record<string, string> = {}): Busine
   const rating = revs.length ? Math.round((revs.reduce((a, x) => a + x.rating, 0) / revs.length) * 10) / 10 : 0;
   const gallery = r.photos.map((p) => urls[p]).filter(Boolean) as string[];
   const years = r.year_established ? Math.max(0, new Date().getFullYear() - r.year_established) : 0;
+  const currentOpen = openNow(r.hours, r.days_open);
   return {
     id: r.id, name: r.name, category: r.category, sub: r.sub || "General", city: r.city as City, area: r.area,
     rating, reviews: revs.length, years,
-    verified: r.verified, trust: r.plan !== "free", sponsored: r.sponsored, open: false, hours: r.hours,
-    distance: Infinity, phone: r.phone ? `+91 ${r.phone.replace(/^0/, "")}` : "", image: gallery[0] ?? categoryImage(r.category), gallery, logo: r.logo ? urls[r.logo] : undefined,
+    verified: r.verified, trust: r.plan !== "free", sponsored: r.sponsored, open: currentOpen === true, openKnown: currentOpen !== null, hours: r.hours,
+    coords: parseCoordinates(r.coordinates), distance: Infinity, phone: r.phone || "", image: gallery[0] ?? categoryImage(r.category), gallery, logo: r.logo ? urls[r.logo] : undefined,
     tags: r.tags,
     highlight: r.description ? r.description.split(".")[0] + "." : "Newly listed on Justdial.", price: r.price,
     services: Array.isArray(r.services) ? (r.services as Service[]).filter((s) => s?.name) : [], live: true, description: r.description, address: r.address,
@@ -43,7 +45,7 @@ export const liveBusinessesQ = queryOptions({
 export const liveBusinessQ = (id: string) => queryOptions({
   queryKey: ["public", "business", id],
   queryFn: async () => {
-    const { data } = await supabase.from("businesses").select(SELECT).eq("id", id).maybeSingle();
+    const { data } = await supabase.from("businesses").select(SELECT).eq("id", id).eq("status", "approved").maybeSingle();
     if (!data) return null;
     const urls = await photoUrls(allPaths([data as Row], true));
     return rowToBusiness(data as Row, urls);

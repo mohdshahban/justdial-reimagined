@@ -1,6 +1,7 @@
 import restaurant from "@/assets/biz-restaurant.jpg";
 import clinic from "@/assets/biz-clinic.jpg";
 import repair from "@/assets/biz-repair.jpg";
+import type { Coordinates } from "@/lib/discovery";
 
 export const CITIES = ["Noida", "Mumbai", "Delhi", "Bengaluru", "Chennai", "Hyderabad", "Pune", "Kolkata", "Ahmedabad"] as const;
 export type City = (typeof CITIES)[number];
@@ -51,13 +52,29 @@ export type Business = {
   id: string; name: string; category: string; sub: string; city: City; area: string;
   rating: number; reviews: number; years: number; verified: boolean; trust: boolean; sponsored: boolean;
   open: boolean; hours: string; distance: number; phone: string; image: string; tags: string[];
+  openKnown?: boolean; coords?: Coordinates;
   highlight: string; price: string; services: { name: string; price: string }[]; reviewList: Review[];
   live?: boolean; description?: string; address?: string;
   gallery?: string[]; logo?: string | undefined; website?: string; email?: string; whatsapp?: string; landmark?: string; pincode?: string; payments?: string[]; days?: string[];
 };
 
-const CAT_IMG: Record<string, string> = { restaurants: restaurant, hotels: restaurant, caterers: restaurant, doctors: clinic, hospitals: clinic, pharmacy: clinic, "beauty-spa": clinic, gyms: clinic };
-export const categoryImage = (slug: string) => CAT_IMG[slug] ?? repair;
+// Approved listings without owner-provided photos receive a clearly labelled
+// original graphic, never a stock image that looks like the actual premises.
+export const categoryImage = (slug: string) => {
+  const escapes: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" };
+  const title = (getCategory(slug)?.name ?? "Local business").replace(/[&<>"']/g, (char) => escapes[char] ?? char);
+  const graphic = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="${title} placeholder graphic">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff8eb"/><stop offset="1" stop-color="#f4dabb"/></linearGradient></defs>
+    <rect width="800" height="600" fill="url(#g)"/><circle cx="735" cy="95" r="160" fill="#f3be81" opacity=".4"/><circle cx="70" cy="550" r="200" fill="#edcc9a" opacity=".45"/>
+    <rect x="210" y="195" width="380" height="220" rx="18" fill="#fff" stroke="#d3ae81" stroke-width="7"/>
+    <path d="M200 203h400l-34-80H234z" fill="#f4a63a" stroke="#b36e28" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M200 203h400" stroke="#fff8eb" stroke-width="14" stroke-dasharray="44 42"/>
+    <rect x="250" y="247" width="116" height="168" rx="7" fill="#f5e6d2"/><rect x="412" y="247" width="134" height="100" rx="8" fill="#f5e6d2"/>
+    <text x="400" y="488" font-family="Arial,sans-serif" font-size="35" font-weight="700" fill="#1c2b45" text-anchor="middle">${title}</text>
+    <text x="400" y="530" font-family="Arial,sans-serif" font-size="20" fill="#745e52" text-anchor="middle">Business photo pending</text>
+  </svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(graphic)}`;
+};
 
 const AREAS: Record<City, string[]> = {
   Noida: ["Sector 27", "Sector 50", "Sector 62", "Sector 90", "Sector 128"],
@@ -139,15 +156,20 @@ export const BUSINESSES: Business[] = SEED.flatMap((s, si) =>
 
 export const getBusiness = (id: string) => BUSINESSES.find((b) => b.id === id);
 
-export function searchBusinesses(q = "", city?: string, list: Business[] = BUSINESSES) {
-  const t = q.trim().toLowerCase();
-  return list.filter((b) => {
-    if (city && b.city !== city) return false;
-    if (!t) return true;
-    const cat = getCategory(b.category);
-    return [b.name, b.sub, cat?.name, b.area, ...b.tags].some((f) => f?.toLowerCase().includes(t)) ||
-      (cat?.name.toLowerCase().split(/[ &]+/).some((w) => w && t.includes(w)) ?? false);
-  }).sort((a, b) => Number(b.city === city) - Number(a.city === city) || Number(b.sponsored) - Number(a.sponsored));
+export function searchBusinesses(q = "", city?: string, list: Business[] = []) {
+  const t = q.trim().toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  const tokens = t.split(" ").filter(Boolean);
+  const scored = list.filter((b) => !city || b.city === city).map((b) => {
+    const category = getCategory(b.category)?.name.toLowerCase() ?? "";
+    const name = b.name.toLowerCase();
+    const searchable = [name, category, b.sub, b.area, b.description, ...b.tags, ...b.services.map((s) => s.name)]
+      .filter(Boolean).join(" ").toLowerCase().replace(/[^a-z0-9 ]/g, " ");
+    const matches = tokens.every((token) => searchable.includes(token));
+    const score = (name.includes(t) ? 6 : 0) + (category.includes(t) ? 5 : 0) +
+      (b.sub.toLowerCase().includes(t) ? 3 : 0) + (b.sponsored ? 1 : 0);
+    return { b, score, matches: tokens.length === 0 || matches };
+  });
+  return scored.filter((entry) => entry.matches).sort((a, b) => b.score - a.score || b.b.reviews - a.b.reviews).map((entry) => entry.b);
 }
 
 export const STATS = [

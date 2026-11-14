@@ -1,13 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import { BadgeCheck, ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { myBusinessesQ } from "@/lib/owner-data";
 import { getCategory } from "@/data/catalog";
-import { BusinessForm } from "@/components/dash/business-form";
+import { BusinessForm, type ListingPrefill } from "@/components/dash/business-form";
 import { Empty, PageTitle, Pill } from "@/components/dash/shell";
 import { Btn } from "@/components/site/ui";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -34,8 +34,20 @@ function Page() {
   const qc = useQueryClient();
   const { data } = useSuspenseQuery(myBusinessesQ(user.id));
   const [editing, setEditing] = useState<Tables<"businesses"> | undefined>();
+  const [prefill, setPrefill] = useState<ListingPrefill>();
+  useEffect(() => {
+    if (!search.new) return;
+    try {
+      const raw = sessionStorage.getItem("business-onboarding-v1");
+      if (raw) {
+        const data = JSON.parse(raw) as ListingPrefill;
+        if (data.name && data.phone && data.city && data.cat) setPrefill(data);
+      }
+    } catch { /* Storage may be unavailable; form still opens. */ }
+  }, [search.new]);
   const open = !!search.new || !!editing;
   const close = () => { setEditing(undefined); nav({ search: {} }); };
+  const onSaved = () => { if (!editing) { try { sessionStorage.removeItem("business-onboarding-v1"); } catch { /* ignore */ } setPrefill(undefined); } close(); };
 
   const remove = async (id: string, name: string) => {
     if (!confirm(`Delete "${name}"? This also removes its leads and reviews.`)) return;
@@ -64,7 +76,7 @@ function Page() {
       <Dialog open={open} onOpenChange={(o) => !o && close()}>
         <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto rounded-3xl">
           <DialogHeader><DialogTitle className="font-display text-2xl">{editing ? "Edit listing" : "Add a listing"}</DialogTitle></DialogHeader>
-          <BusinessForm key={editing?.id ?? "new"} initial={editing} ownerId={user.id} onDone={close} />
+          <BusinessForm key={editing?.id ?? (prefill ? `new-${prefill.name}` : "new")} initial={editing} prefill={editing ? undefined : prefill} ownerId={user.id} onDone={onSaved} />
         </DialogContent>
       </Dialog>
     </>
