@@ -82,14 +82,14 @@ export function BusinessCard({ b }: { b: Business }) {
   const call = phoneHref(b.phone);
   const whatsapp = whatsappUrl(b.whatsapp);
   return (
-    <article className="flex flex-col gap-4 rounded-xl border border-[#e0e4e9] bg-white p-3.5 transition hover:border-[#bdc7d2] hover:shadow-sm sm:flex-row sm:gap-4 sm:p-4">
-      <Link to="/business/$id" params={{ id: b.id }} className="relative flex h-44 w-full shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#f4f6f8] sm:h-[180px] sm:w-[180px]">
+    <article className="flex gap-3 rounded-xl border border-[#e0e4e9] bg-white p-3 transition hover:border-[#bdc7d2] hover:shadow-sm sm:gap-4 sm:p-4">
+      <Link to="/business/$id" params={{ id: b.id }} className="relative flex h-32 w-28 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#f4f6f8] sm:h-[180px] sm:w-[180px]">
         {b.gallery?.length ? <img src={b.image} alt={`${b.name} business photo`} loading="lazy" width={360} height={360} className="size-full object-cover transition duration-300 hover:scale-105" /> : <div className="flex flex-col items-center gap-2 text-[#8b97a5]"><ImageOff className="size-8" strokeWidth={1.5} /><span className="text-xs font-medium">Photos pending</span></div>}
         {b.sponsored && <span className="absolute left-2 top-2 rounded bg-[#1b2732]/90 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-white">Sponsored</span>}
       </Link>
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex flex-wrap items-center gap-2">
-          <Link to="/business/$id" params={{ id: b.id }} className="text-[19px] font-bold leading-snug text-[#202a34] hover:text-[#1264b1] hover:underline">{b.name}</Link>
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <Link to="/business/$id" params={{ id: b.id }} className="text-[16px] font-bold leading-snug text-[#202a34] hover:text-[#1264b1] hover:underline sm:text-[19px]">{b.name}</Link>
           {b.verified && <span title="Verified by the directory" className="inline-flex items-center gap-1 text-xs font-semibold text-[#078347]"><BadgeCheck className="size-4" />Verified</span>}
           {b.trust && <span className="inline-flex items-center gap-1 rounded bg-[#fff5df] px-1.5 py-0.5 text-[11px] font-bold text-[#8b6200]"><ShieldCheck className="size-3.5" />Trust</span>}
         </div>
@@ -102,10 +102,10 @@ export function BusinessCard({ b }: { b: Business }) {
           <span className="rounded bg-[#f2f4f6] px-2.5 py-1 text-xs font-medium text-[#506070]">{b.sub || cat?.name}</span>
           {b.tags.slice(0, 2).map((t) => <span key={t} className="rounded bg-[#f2f4f6] px-2.5 py-1 text-xs font-medium text-[#506070]">{t}</span>)}
         </div>
-        <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
-          {call && <a href={call} className="inline-flex min-h-9 items-center justify-center gap-2 rounded-md bg-[#078347] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#056b39]"><Phone className="size-4" />Call now</a>}
-          {whatsapp && <a href={whatsapp} target="_blank" rel="noreferrer" className="inline-flex min-h-9 items-center justify-center gap-2 rounded-md border border-[#13a36b] bg-white px-3 py-2 text-sm font-bold text-[#087f49] transition hover:bg-[#eaf9f2]"><MessageCircle className="size-4" />WhatsApp</a>}
-          {b.live ? <EnquiryPopup context={{ businessId: b.id, businessName: b.name, title: b.sub || b.name, image: b.gallery?.length ? b.image : undefined, location: `${b.area}, ${b.city}`, price: b.price, description: b.description }} label="Send Enquiry" buttonClassName="min-h-9 rounded-md bg-[#1673d1] px-4 py-2 text-sm text-white shadow-none hover:bg-[#095fae]" /> : <Link to="/business/$id" params={{ id: b.id }} hash="enquire" className="inline-flex min-h-9 items-center justify-center rounded-md bg-[#1673d1] px-4 py-2 text-sm font-bold text-white hover:bg-[#095fae]">Send Enquiry</Link>}
+        <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-3 sm:gap-2 sm:pt-4">
+          {call && <a href={call} className="inline-flex min-h-8 items-center justify-center gap-1.5 rounded-md bg-[#078347] px-2.5 py-1.5 text-xs font-bold text-white transition hover:bg-[#056b39] sm:min-h-9 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"><Phone className="size-3.5 sm:size-4" />Call now</a>}
+          {whatsapp && <a href={whatsapp} target="_blank" rel="noreferrer" className="inline-flex min-h-8 items-center justify-center gap-1.5 rounded-md border border-[#13a36b] bg-white px-2.5 py-1.5 text-xs font-bold text-[#087f49] transition hover:bg-[#eaf9f2] sm:min-h-9 sm:px-3 sm:py-2 sm:text-sm"><MessageCircle className="size-3.5 sm:size-4" />WhatsApp</a>}
+          {b.live ? <EnquiryPopup context={{ businessId: b.id, businessName: b.name, title: b.sub || b.name, image: b.gallery?.length ? b.image : undefined, location: `${b.area}, ${b.city}`, price: b.price, description: b.description }} label="Send Enquiry" buttonClassName="min-h-8 rounded-md bg-[#1673d1] px-2.5 py-1.5 text-xs text-white shadow-none hover:bg-[#095fae] sm:min-h-9 sm:px-4 sm:py-2 sm:text-sm" /> : <Link to="/business/$id" params={{ id: b.id }} hash="enquire" className="inline-flex min-h-8 items-center justify-center rounded-md bg-[#1673d1] px-2.5 py-1.5 text-xs font-bold text-white hover:bg-[#095fae] sm:min-h-9 sm:px-4 sm:py-2 sm:text-sm">Send Enquiry</Link>}
         </div>
       </div>
     </article>

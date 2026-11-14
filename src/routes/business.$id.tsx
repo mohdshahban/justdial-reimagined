@@ -77,7 +77,7 @@ function BusinessView({ b }: { b: Business }) {
   const dist = [5, 4, 3, 2, 1].map((n) => (b.reviewList.length ? Math.round((b.reviewList.filter((r) => r.rating === n).length / b.reviewList.length) * 100) : 0));
   const landmark = b.landmark?.trim() && b.landmark.trim().toLowerCase() !== b.address?.trim().toLowerCase() ? b.landmark.trim() : "";
   return (
-    <div className="container-page pt-5">
+    <div className="container-page max-w-[90rem] pt-5">
       <nav className="flex flex-wrap items-center gap-1 text-xs text-[#718096]"><Link to="/" className="hover:underline">Home</Link><ChevronRight className="size-3.5" /><Link to="/category/$slug" params={{ slug: b.category }} className="hover:underline">{cat?.name}</Link><ChevronRight className="size-3.5" /><span className="text-[#435267]">{b.name}</span></nav>
 
       <section className="mt-4 rounded-xl border border-[#dfe5eb] bg-white p-4 sm:p-6">

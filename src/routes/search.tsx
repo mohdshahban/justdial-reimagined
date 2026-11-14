@@ -26,7 +26,7 @@ function SearchPage() {
   const { data: live = [] } = useQuery(liveBusinessesQ);
   const results = searchBusinesses(q, city, live);
   return (
-    <div className="container-page pt-5">
+    <div className="container-page max-w-[90rem] pt-5">
       <nav className="flex flex-wrap items-center gap-1 text-xs text-[#718096]"><Link to="/" className="hover:underline">Home</Link><ChevronRight className="size-3.5" />{city ?? "All cities"}<ChevronRight className="size-3.5" /><span className="text-[#435267]">{q || "All businesses"}</span></nav>
       <h1 className="mt-3 text-[23px] font-bold leading-tight tracking-tight text-[#1c2b3a] md:text-[26px]">{q || "Explore businesses"}{city && <span> in {area ? `${area}, ` : ""}{city}</span>}</h1>
       <p className="mt-1 text-[13px] text-[#6b7887]">Browse local businesses, compare services and contact the provider directly.</p>

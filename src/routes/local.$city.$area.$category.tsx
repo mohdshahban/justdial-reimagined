@@ -33,7 +33,7 @@ function LocalArchive() {
   const { data: all = [] } = useQuery(liveBusinessesQ);
   const list = all.filter((b) => b.city === city && b.category === category.slug && slugify(b.area) === slugify(area));
   return (
-    <div className="container-page pt-5">
+    <div className="container-page max-w-[90rem] pt-5">
       <nav className="flex flex-wrap items-center gap-1 text-xs text-[#718096]"><Link to="/">Home</Link><ChevronRight className="size-3.5" /><Link to="/category/$slug" params={{ slug: category.slug }} search={{ city }}>{category.name}</Link><ChevronRight className="size-3.5" />{city}<ChevronRight className="size-3.5" /><span className="text-[#435267]">{area}</span></nav>
       <header className="mt-3">
         <h1 className="text-[23px] font-bold leading-tight tracking-tight text-[#1c2b3a] md:text-[26px]">{category.name} in {area}, {city}</h1>

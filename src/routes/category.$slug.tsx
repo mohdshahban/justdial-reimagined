@@ -41,7 +41,7 @@ function CategoryPage() {
   const list = live.filter((b) => b.category === cat.slug && b.city === city);
   const related = CATEGORIES.filter((c) => c.group === cat.group && c.slug !== cat.slug).slice(0, 6);
   return (
-    <div className="container-page pt-5">
+    <div className="container-page max-w-[90rem] pt-5">
       <nav className="flex flex-wrap items-center gap-1 text-xs text-[#718096]"><Link to="/" className="hover:underline">Home</Link><ChevronRight className="size-3.5" /><Link to="/categories" className="hover:underline">Categories</Link><ChevronRight className="size-3.5" /><span className="text-[#435267]">{cat.name} in {city}</span></nav>
       <header className="mt-3">
         <h1 className="text-[23px] font-bold leading-tight tracking-tight text-[#1c2b3a] md:text-[26px]">{cat.name} in {city}</h1>
