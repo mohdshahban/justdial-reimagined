@@ -77,82 +77,96 @@ function BusinessView({ b }: { b: Business }) {
   const dist = [5, 4, 3, 2, 1].map((n) => (b.reviewList.length ? Math.round((b.reviewList.filter((r) => r.rating === n).length / b.reviewList.length) * 100) : 0));
   const landmark = b.landmark?.trim() && b.landmark.trim().toLowerCase() !== b.address?.trim().toLowerCase() ? b.landmark.trim() : "";
   return (
-    <div className="container-page pt-6">
-      <nav className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground"><Link to="/" className="hover:underline">Home</Link><ChevronRight className="size-4" /><Link to="/category/$slug" params={{ slug: b.category }} className="hover:underline">{cat?.name}</Link><ChevronRight className="size-4" /><span className="text-foreground">{b.name}</span></nav>
+    <div className="container-page max-w-[90rem] pt-5">
+      <nav className="flex flex-wrap items-center gap-1 text-xs text-[#718096]"><Link to="/" className="hover:underline">Home</Link><ChevronRight className="size-3.5" /><Link to="/category/$slug" params={{ slug: b.category }} className="hover:underline">{cat?.name}</Link><ChevronRight className="size-3.5" /><span className="text-[#435267]">{b.name}</span></nav>
 
-      <div className="relative mt-4 grid h-64 grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-[2rem] md:h-96">
-        <img src={pics[0] ?? b.image} alt={pics.length ? `${b.name} business photo` : `${cat?.name ?? "Business"} category illustration`} width={944} height={704} className={`col-span-4 row-span-2 size-full object-cover ${pics.length > 1 ? "md:col-span-2" : ""}`} />
-        {pics.slice(1, 5).map((src, i) => <img key={src} src={src} alt={`${b.name} photo ${i + 2}`} loading="lazy" className="hidden size-full object-cover md:block" />)}
-        {!pics.length && <span className="absolute bottom-4 left-4 rounded-lg bg-ink/85 px-3 py-1.5 text-xs font-semibold text-ink-foreground">Photo pending · Category placeholder</span>}
-      </div>
+      <section className="mt-4 rounded-xl border border-[#dfe5eb] bg-white p-4 sm:p-6">
+        <div className="flex flex-wrap items-center gap-2.5">
+          {b.logo && <img src={b.logo} alt={`${b.name} logo`} className="size-11 rounded-md border object-cover" />}
+          <h1 className="text-[23px] font-bold leading-tight text-[#1c2b3a] md:text-[27px]">{b.name}</h1>
+          {b.verified && <span className="inline-flex items-center gap-1 text-xs font-bold text-[#078347]"><BadgeCheck className="size-4" />Verified</span>}
+          {b.trust && <span className="inline-flex items-center gap-1 rounded bg-[#fff5df] px-2 py-1 text-xs font-bold text-[#8b6200]"><ShieldCheck className="size-4" />Trust</span>}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-[#526171]">
+          {b.reviews > 0 ? <><RatingBadge rating={b.rating} className="rounded px-2 py-0.5 text-xs" /><span className="font-semibold">{b.reviews.toLocaleString("en-IN")} ratings</span></> : <span className="rounded bg-[#edf2f6] px-2 py-1 text-xs font-semibold">New listing</span>}
+          <span>{cat?.name}{b.sub ? ` · ${b.sub}` : ""}</span>
+          {b.years > 0 && <span>· {b.years} years in business</span>}
+        </div>
+        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-[#526171]">
+          <span className="inline-flex items-start gap-1.5"><MapPin className="mt-0.5 size-4 shrink-0" />{b.address || `${b.area}, ${b.city}`}{landmark ? ` · ${landmark}` : ""}</span>
+          <span className="inline-flex items-center gap-1.5"><Clock className="size-4" />{b.hours || "Hours not provided"}{b.openKnown && <strong className={b.open ? "text-[#078347]" : "text-[#7a8794]"}>· {b.open ? "Open now" : "Currently closed"}</strong>}</span>
+        </div>
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          {call && <a href={call} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-[#078347] px-4 py-2 text-sm font-bold text-white hover:bg-[#056b39]"><Phone className="size-4" />{b.phone}</a>}
+          {b.live && <EnquiryPopup context={{ businessId: b.id, businessName: b.name, title: b.sub && b.sub !== "General" ? b.sub : cat?.name ?? b.name, image: pics.length ? b.image : undefined, location: `${b.area}, ${b.city}`, price: b.price, description: b.description }} label="Send Enquiry" buttonClassName="min-h-10 rounded-md bg-[#1673d1] px-4 text-white shadow-none hover:bg-[#095fae]" />}
+          {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-[#13a36b] px-4 py-2 text-sm font-bold text-[#087f49] hover:bg-[#eaf9f2]"><MessageCircle className="size-4" />WhatsApp</a>}
+          <Link to="/write-review" search={{ b: b.id }} className="inline-flex min-h-10 items-center gap-2 rounded-md border border-[#dce1e6] px-3 py-2 text-sm font-semibold hover:bg-[#f4f6f8]"><PenLine className="size-4" />Rate & Review</Link>
+          <button onClick={share} className="inline-flex min-h-10 items-center gap-2 rounded-md border border-[#dce1e6] px-3 py-2 text-sm font-semibold hover:bg-[#f4f6f8]"><Share2 className="size-4" />Share</button>
+          <button onClick={toggleSave} aria-pressed={saved} className="inline-flex min-h-10 items-center gap-2 rounded-md border border-[#dce1e6] px-3 py-2 text-sm font-semibold hover:bg-[#f4f6f8]">{saved ? <Check className="size-4" /> : <Bookmark className="size-4" />}{saved ? "Saved" : "Save"}</button>
+        </div>
+      </section>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            {b.logo && <img src={b.logo} alt={`${b.name} logo`} className="size-12 rounded-xl border object-cover" />}
-            <h1 className="text-3xl font-extrabold md:text-4xl">{b.name}</h1>
-            {b.verified && <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2.5 py-1 text-xs font-bold text-success"><BadgeCheck className="size-4" />Verified</span>}
-            {b.trust && <span className="inline-flex items-center gap-1 rounded-full bg-saffron-soft px-2.5 py-1 text-xs font-bold"><ShieldCheck className="size-4" />Trust</span>}
-          </div>
-          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
-            <RatingBadge rating={b.rating} /><span className="font-semibold">{b.reviews.toLocaleString("en-IN")} ratings</span>
-            <span className="text-muted-foreground">{cat?.name} · {b.sub}{b.years > 0 && ` · ${b.years} yrs in business`}</span>
-          </div>
-          <div className="mt-3 flex flex-col gap-1.5 text-sm text-muted-foreground">
-            <span className="flex items-center gap-2"><MapPin className="size-4" />{b.address || `${b.area}, ${b.city}`}{landmark ? ` · ${landmark}` : ""}</span>
-            <span className="flex items-center gap-2"><Clock className="size-4" />{b.hours || "Contact business for opening hours"}{b.days?.length ? ` · ${b.days.length === 7 ? "All days" : b.days.join(", ")}` : ""}</span>
-            {b.openKnown && <span className={`text-sm font-semibold ${b.open ? "text-success" : "text-muted-foreground"}`}>{b.open ? "Open now" : "Currently closed"} · Based on listed hours</span>}
-          </div>
-          <div className="mt-5 flex flex-wrap gap-2">
-            {b.live && <EnquiryPopup context={{ businessId: b.id, businessName: b.name, title: b.sub || b.name, image: b.image, location: `${b.area}, ${b.city}`, price: b.price, description: b.description }} />}
-            {call && <a href={call} className={btnClass("ink")}><Phone className="size-4" />{b.phone}</a>}
-            <Link to="/write-review" search={{ b: b.id }} className={btnClass("outline")}><PenLine className="size-4" />Review</Link>
-            {wa && <a href={wa} target="_blank" rel="noreferrer" className={btnClass("outline")}><MessageCircle className="size-4" />WhatsApp</a>}
-            {website && <a href={website} target="_blank" rel="noreferrer" className={btnClass("outline")}><Globe className="size-4" />Website</a>}
-            <a href={directionsUrl(`${b.address || b.area}, ${b.city}, India`, b.coords)} target="_blank" rel="noreferrer" className={btnClass("outline")}><Navigation className="size-4" />Directions</a>
-            <button onClick={share} className={btnClass("outline")}><Share2 className="size-4" />Share</button>
-            <button onClick={toggleSave} aria-pressed={saved} className={btnClass("outline")}>{saved ? <Check className="size-4" /> : <Bookmark className="size-4" />}{saved ? "Saved" : "Save"}</button>
-          </div>
-
-          <Tabs defaultValue="overview" className="mt-8">
-            <TabsList className="h-auto flex-wrap rounded-2xl p-1">
-              {["overview", "catalog", "services", "photos", "reviews", "qa"].map((t) => <TabsTrigger key={t} value={t} className="rounded-xl px-4 py-2 capitalize">{t === "qa" ? "Info" : t === "catalog" ? "Products & services" : t}</TabsTrigger>)}
+      <div className="mt-5 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="min-w-0">
+          <Tabs defaultValue="overview">
+            <TabsList className="no-scrollbar flex h-auto w-full justify-start gap-1 overflow-x-auto rounded-none border-b border-[#dfe5eb] bg-transparent p-0">
+              {["overview", "photos", "catalog", "qa", "services", "reviews"].map((t) => <TabsTrigger key={t} value={t} className="shrink-0 rounded-none border-b-[3px] border-transparent px-3.5 py-3 text-sm font-semibold text-[#556575] shadow-none data-[state=active]:border-[#1673d1] data-[state=active]:bg-transparent data-[state=active]:text-[#1673d1] data-[state=active]:shadow-none">{t === "qa" ? "Quick Info" : t === "catalog" ? "Catalogue" : t === "overview" ? "Overview" : t === "photos" ? "Photos" : t === "services" ? "Services" : "Reviews"}</TabsTrigger>)}
             </TabsList>
-            <TabsContent value="overview" className="mt-6 space-y-4">
-              <p className="leading-relaxed">{b.description || `${b.name} is listed under ${cat?.name ?? "local businesses"} in ${b.area}, ${b.city}. Contact the business to confirm available services and current details.`}</p>
-              <div className="flex flex-wrap gap-2">{b.tags.map((t) => <span key={t} className="rounded-full bg-muted px-3 py-1 text-sm font-medium">{t}</span>)}</div>
-              {b.price && <p className="text-sm"><span className="font-bold">Price:</span> {b.price}</p>}
-              {!!b.payments?.length && <p className="text-sm"><span className="font-bold">Payments:</span> {b.payments.join(", ")}</p>}
+            <TabsContent value="overview" className="mt-5 space-y-5">
+              <section className="rounded-xl border border-[#e0e4e9] bg-white p-4 sm:p-5">
+                <div className="mb-3 flex items-center justify-between gap-3"><h2 className="text-lg font-bold">Photos</h2><span className="text-xs font-medium text-[#69798a]">{pics.length ? `${pics.length} business ${pics.length === 1 ? "photo" : "photos"}` : "No photos yet"}</span></div>
+                {pics.length ? <div className="grid h-40 grid-cols-3 gap-2 overflow-hidden rounded-lg sm:h-52">{pics.slice(0, 3).map((src, i) => <a key={src} href={src} target="_blank" rel="noreferrer" className="overflow-hidden bg-[#f4f6f8]"><img src={src} alt={`${b.name} photo ${i + 1}`} loading="lazy" className="size-full object-cover transition hover:scale-105" /></a>)}</div> : <div className="flex h-32 items-center justify-center gap-2 rounded-lg border border-dashed border-[#ccd5de] bg-[#f5f7fa] text-sm text-[#7a8896]"><ImageIcon className="size-5" />Actual business photos not available yet</div>}
+              </section>
+              <section className="rounded-xl border border-[#e0e4e9] bg-white p-4 sm:p-5">
+                <h2 className="mb-3 text-lg font-bold">About {b.name}</h2>
+                <p className="text-sm leading-7 text-[#415163]">{b.description || `${b.name} is listed under ${cat?.name ?? "local businesses"} in ${b.area}, ${b.city}. Contact the business to confirm available services and current details.`}</p>
+                <div className="mt-4 flex flex-wrap gap-2">{b.tags.map((t) => <span key={t} className="rounded bg-[#f2f4f6] px-3 py-1 text-xs font-medium text-[#506070]">{t}</span>)}</div>
+                {b.price && <p className="mt-4 text-sm"><span className="font-bold">Price:</span> {b.price}</p>}
+                {!!b.payments?.length && <p className="mt-2 text-sm"><span className="font-bold">Payments:</span> {b.payments.join(", ")}</p>}
+              </section>
             </TabsContent>
-            <TabsContent value="services" className="mt-6">
-              <ul className="divide-y rounded-3xl border bg-card">{b.services.length === 0 && <li className="p-4 text-sm text-muted-foreground">Call or send an enquiry for prices.</li>}{b.services.map((s) => <li key={s.name} className="flex items-center justify-between p-4"><span className="font-semibold">{s.name}</span><span className="font-bold">{s.price}</span></li>)}</ul>
+            <TabsContent value="services" className="mt-5">
+              <ul className="divide-y rounded-xl border bg-white">{b.services.length === 0 && <li className="p-4 text-sm text-muted-foreground">Call or send an enquiry for available services and prices.</li>}{b.services.map((s) => <li key={s.name} className="flex items-center justify-between gap-3 p-4"><span className="font-semibold">{s.name}</span><span className="font-bold">{s.price}</span></li>)}</ul>
             </TabsContent>
-            <TabsContent value="catalog" className="mt-6"><BusinessOfferings businessId={b.id} businessName={b.name} businessImage={b.image} location={`${b.area}, ${b.city}`} /></TabsContent>
-            <TabsContent value="photos" className="mt-6">
-              {pics.length ? <div className="grid grid-cols-2 gap-3 md:grid-cols-3">{pics.map((src, i) => <a key={src} href={src} target="_blank" rel="noreferrer" className="overflow-hidden rounded-2xl border"><img src={src} alt={`${b.name} photo ${i + 1}`} loading="lazy" className="aspect-[4/3] size-full object-cover transition hover:scale-105" /></a>)}</div> : <div className="rounded-3xl border border-dashed bg-muted p-8 text-center"><ImageIcon className="mx-auto size-8 text-muted-foreground" /><p className="mt-2 font-semibold">No business photos yet</p><p className="mt-1 text-sm text-muted-foreground">The image above is a category illustration, not a photo of this business.</p></div>}
+            <TabsContent value="catalog" className="mt-5"><BusinessOfferings businessId={b.id} businessName={b.name} businessImage={b.image} location={`${b.area}, ${b.city}`} /></TabsContent>
+            <TabsContent value="photos" className="mt-5">
+              {pics.length ? <div className="grid grid-cols-2 gap-3 md:grid-cols-3">{pics.map((src, i) => <a key={src} href={src} target="_blank" rel="noreferrer" className="overflow-hidden rounded-xl border"><img src={src} alt={`${b.name} photo ${i + 1}`} loading="lazy" className="aspect-[4/3] size-full object-cover transition hover:scale-105" /></a>)}</div> : <div className="rounded-xl border border-dashed bg-[#f5f7fa] p-8 text-center"><ImageIcon className="mx-auto size-8 text-[#7a8896]" /><p className="mt-2 font-semibold">No business photos yet</p><p className="mt-1 text-sm text-muted-foreground">Actual photos can be added by the business owner.</p></div>}
             </TabsContent>
-            <TabsContent value="reviews" className="mt-6">
-              <div className="grid gap-6 rounded-3xl border bg-card p-6 sm:grid-cols-[160px_1fr]">
+            <TabsContent value="reviews" className="mt-5">
+              <div className="grid gap-6 rounded-xl border bg-white p-6 sm:grid-cols-[160px_1fr]">
                 <div className="text-center"><p className="font-display text-5xl font-extrabold">{b.reviews ? b.rating.toFixed(1) : "New"}</p><div className="mt-1 flex justify-center text-primary">{b.reviews > 0 && Array.from({ length: 5 }).map((_, i) => <Star key={i} className={`size-4 ${i < Math.round(b.rating) ? "fill-current" : "text-muted"}`} />)}</div><p className="mt-1 text-xs text-muted-foreground">{b.reviews} ratings</p></div>
                 <div className="space-y-1.5">{dist.map((p, i) => <div key={i} className="flex items-center gap-2 text-sm"><span className="w-3">{5 - i}</span><div className="h-2 flex-1 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-success" style={{ width: `${p}%` }} /></div><span className="w-8 text-right text-muted-foreground">{p}%</span></div>)}</div>
               </div>
-              <ul className="mt-4 space-y-3">{b.reviewList.length === 0 && <li className="rounded-3xl border border-dashed bg-card p-6 text-center text-sm text-muted-foreground">No reviews yet — be the first.</li>}{b.reviewList.map((r, i) => (
-                <li key={i} className="rounded-3xl border bg-card p-5">
+              <ul className="mt-4 space-y-3">{b.reviewList.length === 0 && <li className="rounded-xl border border-dashed bg-card p-6 text-center text-sm text-muted-foreground">No reviews yet — be the first.</li>}{b.reviewList.map((r, i) => (
+                <li key={i} className="rounded-xl border bg-card p-5">
                   <div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-full bg-saffron-soft font-bold">{r.name[0]}</span><div><p className="font-bold">{r.name}</p><p className="text-xs text-muted-foreground">{r.date}</p></div><RatingBadge rating={r.rating} className="ml-auto" /></div>
                   <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed">{r.text}</p>
                 </li>))}</ul>
             </TabsContent>
-            <TabsContent value="qa" className="mt-6 space-y-3">
-              <dl className="divide-y rounded-3xl border bg-card">{([
+            <TabsContent value="qa" className="mt-5 space-y-3">
+              <dl className="divide-y rounded-xl border bg-white">{([
                 ["Address", [b.address || `${b.area}, ${b.city}`, b.pincode].filter(Boolean).join(" – ")], ["Landmark", b.landmark], ["Phone", b.phone],
                 ["WhatsApp", b.whatsapp ? `+91 ${b.whatsapp}` : ""], ["Email", b.email], ["Website", b.website],
                 ["Open days", b.days?.join(", ")], ["Hours", b.hours], ["Payments", b.payments?.join(", ")], ["In business", b.years > 0 ? `${b.years} years` : ""],
               ] as [string, string | undefined][]).filter(([, v]) => v).map(([k, v]) => <div key={k} className="grid grid-cols-[120px_1fr] gap-3 p-4 text-sm"><dt className="font-bold">{k}</dt><dd className="break-words text-muted-foreground">{v}</dd></div>)}</dl>
             </TabsContent>
           </Tabs>
-          <p className="mt-8 text-sm text-muted-foreground">Own a business? <Link to="/free-listing" className="font-bold text-foreground underline">Create or manage a listing</Link></p>
+          <p className="mt-6 text-sm text-muted-foreground">Own a business? <Link to="/free-listing" className="font-bold text-foreground underline">Create or manage a listing</Link></p>
         </div>
-        <aside id="enquire" className="scroll-mt-24 lg:sticky lg:top-24 lg:self-start"><EnquiryForm businessId={b.live ? b.id : undefined} subtitle={`Send your requirement to ${b.name}.`} /></aside>
+        <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+          <section className="rounded-xl border border-[#dfe5eb] bg-white p-5">
+            <h2 className="mb-4 text-lg font-bold">Contact & Address</h2>
+            <p className="flex items-start gap-2 text-sm leading-6 text-[#4f5e6c]"><MapPin className="mt-1 size-4 shrink-0 text-[#1673d1]" />{[b.address || `${b.area}, ${b.city}`, b.pincode].filter(Boolean).join(", ")}</p>
+            {landmark && <p className="mt-2 text-xs text-[#788694]">Landmark: {landmark}</p>}
+            <p className="mt-4 flex items-start gap-2 text-sm text-[#4f5e6c]"><Clock className="mt-0.5 size-4 shrink-0 text-[#1673d1]" />{b.hours || "Opening hours not listed"}</p>
+            {b.days?.length > 0 && <p className="ml-6 mt-1 text-xs text-[#788694]">{b.days.length === 7 ? "Open all days" : b.days.join(", ")}</p>}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <a href={directionsUrl(`${b.address || b.area}, ${b.city}, India`, b.coords)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-md border border-[#dce1e6] px-3 py-2 text-xs font-bold text-[#1673d1] hover:bg-[#eff7ff]"><Navigation className="size-4" />Get directions</a>
+              {website && <a href={website} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-md border border-[#dce1e6] px-3 py-2 text-xs font-bold text-[#1673d1] hover:bg-[#eff7ff]"><Globe className="size-4" />Website</a>}
+            </div>
+          </section>
+          <div id="enquire" className="scroll-mt-24"><EnquiryForm businessId={b.live ? b.id : undefined} title="Get a free quote" subtitle={`Send your requirement to ${b.name}.`} directoryStyle /></div>
+        </aside>
       </div>
 
       {similar.length > 0 && (

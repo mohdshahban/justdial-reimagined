@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { MapPinned, Navigation, SearchX, SlidersHorizontal, X } from "lucide-react";
+import { ChevronDown, MapPinned, Navigation, SearchX, SlidersHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
-import { CATEGORIES, getCategory, type Business } from "@/data/catalog";
+import { getCategory, type Business } from "@/data/catalog";
 import { distanceKm, directionsUrl, slugify, type Coordinates } from "@/lib/discovery";
 import { liveBusinessesQ } from "@/lib/public-data";
 import { BusinessCard, EnquiryForm } from "./ui";
@@ -29,6 +29,7 @@ export function DirectoryResults({ businesses, city, category, initialSub = "", 
   const [near, setNear] = useState(false);
   const [position, setPosition] = useState<Coordinates>();
   const [locating, setLocating] = useState(false);
+  const [moreFilters, setMoreFilters] = useState(false);
   const { data: all = [] } = useQuery(liveBusinessesQ);
 
   useEffect(() => { setSub(initialSub); setArea(initialArea); }, [initialSub, initialArea]);
@@ -71,42 +72,48 @@ export function DirectoryResults({ businesses, city, category, initialSub = "", 
 
   const chip = (label: string, active: boolean, onClick: () => void, disabled = false, title?: string) => (
     <button type="button" onClick={onClick} aria-pressed={active} disabled={disabled} title={title}
-      className={cn("shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-40", active ? "border-ink bg-ink text-ink-foreground" : "bg-card hover:bg-muted")}>{label}</button>
+      className={cn("shrink-0 rounded-md border border-[#dce1e6] bg-white px-3.5 py-2 text-[13px] font-semibold text-[#273645] transition hover:border-[#9baec2] disabled:cursor-not-allowed disabled:opacity-40", active && "border-[#1878d3] bg-[#eaf5ff] text-[#0964af]")}>{label}</button>
   );
 
   const activeFilters = top || open || verified || near || area || sub || categoryFilter;
+  const extraFilters = areas.length > 1 || (!category && cats.length > 1) || (category && subs.length > 0);
   const mapQuery = [context, area || city].filter(Boolean).join(" in ");
 
   return (
     <>
-      <div className="sticky top-28 z-30 -mx-4 mt-6 border-y bg-background/95 px-4 py-3 shadow-sm backdrop-blur md:top-16 md:-mx-8 md:px-8">
-        <div className="no-scrollbar flex items-center gap-2 overflow-x-auto">
-          <span className="flex shrink-0 items-center gap-1 text-sm font-bold"><SlidersHorizontal className="size-4" />Filters</span>
-          <select value={order} onChange={(e) => setOrder(e.target.value as Order)} aria-label="Sort by" className="h-10 shrink-0 rounded-full border bg-card px-3 text-sm font-semibold">
+      <div className="mt-5 border-b border-[#e3e7ec] pb-4">
+        <div className="no-scrollbar flex items-center gap-2 overflow-x-auto pb-1">
+          <label className="flex h-[37px] shrink-0 items-center rounded-md border border-[#dce1e6] bg-white pl-3">
+          <SlidersHorizontal className="size-3.5 text-[#415366]" />
+          <select value={order} onChange={(e) => setOrder(e.target.value as Order)} aria-label="Sort by" className="h-full max-w-40 bg-transparent px-2 text-[13px] font-semibold text-[#273645] outline-none">
             <option value="Relevance">Sort: Relevance</option><option value="Rating">Highest rated</option><option value="Popular">Most reviewed</option>
             {position && hasCoordinates && <option value="Nearest">Nearest first</option>}
           </select>
-          {chip("★ 4.5+", top, () => setTop(!top))}
-          {chip("Open now", open, () => setOpen(!open), !hasTimings, "Shown only for businesses with listed opening hours")}
+          </label>
+          {chip("Open Now", open, () => setOpen(!open), !hasTimings, "Shown only for businesses with listed opening hours")}
+          {chip("Top Rated", top, () => setTop(!top))}
           {chip("Verified", verified, () => setVerified(!verified))}
-          {chip(locating ? "Finding location…" : "Within 3 km", near, requestPosition, locating || !hasCoordinates, hasCoordinates ? "Requires location permission" : "Map coordinates unavailable")}
-          {areas.length > 1 && <select value={area} onChange={(e) => setArea(e.target.value)} aria-label="Filter by locality" className="h-10 max-w-48 shrink-0 rounded-full border bg-card px-3 text-sm font-semibold"><option value="">All localities</option>{areas.map((a) => <option key={a} value={a}>{a}</option>)}</select>}
-          {!category && cats.length > 1 && <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} aria-label="Filter by category" className="h-10 max-w-48 shrink-0 rounded-full border bg-card px-3 text-sm font-semibold"><option value="">All categories</option>{cats.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}</select>}
-          {category && subs.length > 0 && <select value={sub} onChange={(e) => setSub(e.target.value)} aria-label="Filter by subcategory" className="h-10 max-w-48 shrink-0 rounded-full border bg-card px-3 text-sm font-semibold"><option value="">All specialties</option>{subs.map((s) => <option key={s} value={s}>{s}</option>)}</select>}
-          {activeFilters && <button type="button" onClick={() => { setTop(false); setOpen(false); setVerified(false); setNear(false); setArea(""); setSub(""); setCategoryFilter(""); }} className="flex shrink-0 items-center gap-1 text-sm font-bold text-coral"><X className="size-4" />Clear</button>}
+          {chip(locating ? "Finding location…" : "Near Me", near, requestPosition, locating || !hasCoordinates, hasCoordinates ? "Requires location permission" : "Map coordinates unavailable")}
+          {extraFilters && <button type="button" onClick={() => setMoreFilters(!moreFilters)} aria-expanded={moreFilters} className={cn("flex shrink-0 items-center gap-1.5 rounded-md border border-[#dce1e6] bg-white px-3.5 py-2 text-[13px] font-semibold text-[#273645]", moreFilters && "border-[#1878d3] bg-[#eaf5ff] text-[#0964af]")}>All Filters<ChevronDown className={cn("size-3.5 transition", moreFilters && "rotate-180")} /></button>}
+          {activeFilters && <button type="button" onClick={() => { setTop(false); setOpen(false); setVerified(false); setNear(false); setArea(""); setSub(""); setCategoryFilter(""); }} className="flex shrink-0 items-center gap-1 px-2 text-[13px] font-bold text-[#1264b1]"><X className="size-4" />Clear</button>}
         </div>
+        {moreFilters && extraFilters && <div className="mt-3 flex flex-wrap gap-2 rounded-lg border border-[#e0e5ea] bg-[#f8fafc] p-3">
+          {areas.length > 1 && <label className="text-xs font-semibold text-[#435267]">Locality<select value={area} onChange={(e) => setArea(e.target.value)} aria-label="Filter by locality" className="mt-1 block h-9 w-full min-w-36 rounded-md border bg-white px-3 text-sm"><option value="">All localities</option>{areas.map((a) => <option key={a} value={a}>{a}</option>)}</select></label>}
+          {!category && cats.length > 1 && <label className="text-xs font-semibold text-[#435267]">Category<select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} aria-label="Filter by category" className="mt-1 block h-9 w-full min-w-40 rounded-md border bg-white px-3 text-sm"><option value="">All categories</option>{cats.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}</select></label>}
+          {category && subs.length > 0 && <label className="text-xs font-semibold text-[#435267]">Specialty<select value={sub} onChange={(e) => setSub(e.target.value)} aria-label="Filter by subcategory" className="mt-1 block h-9 w-full min-w-44 rounded-md border bg-white px-3 text-sm"><option value="">All specialties</option>{subs.map((s) => <option key={s} value={s}>{s}</option>)}</select></label>}
+        </div>}
       </div>
 
-      <p aria-live="polite" className="mt-5 text-sm text-muted-foreground">{results.length} {results.length === 1 ? "business" : "businesses"} found{area && ` in ${area}`}</p>
-      <div className="mt-4 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-4">
+      <p aria-live="polite" className="mt-4 text-[13px] font-medium text-[#667789]">{results.length} {results.length === 1 ? "business" : "businesses"} found{area && ` in ${area}`}</p>
+      <div className="mt-3 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="space-y-3">
           {results.length === 0 ? <div className="rounded-3xl border border-dashed bg-card p-10 text-center"><SearchX className="mx-auto size-10 text-muted-foreground" /><h2 className="mt-3 text-xl font-bold">No matching businesses yet</h2><p className="mt-2 text-sm text-muted-foreground">Try another locality, specialty or fewer filters. We only display real approved listings.</p></div>
             : results.map((b) => <BusinessCard key={b.id} b={position && b.coords ? { ...b, distance: distanceKm(position, b.coords) } : b} />)}
         </div>
-        <aside className="space-y-5 lg:sticky lg:top-36 lg:self-start">
-          <a href={directionsUrl(mapQuery)} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-3 rounded-2xl border bg-card p-4 shadow-soft hover:bg-muted"><span className="flex items-center gap-2 font-semibold"><MapPinned className="size-5 text-coral" />Explore this area on Maps</span><Navigation className="size-4" /></a>
-          {results.length > 0 && <EnquiryForm title={`Get quotes from ${Math.min(5, results.length)} ${results.length === 1 ? "business" : "businesses"}`} subtitle={`Share your requirement with ${context.toLowerCase()} providers.`} cta="Request free quotes" businessIds={results.slice(0, 5).map((b) => b.id)} />}
-          {category && city && areas.length > 0 && <section className="rounded-2xl border bg-card p-5"><h3 className="font-bold">Browse by locality</h3><div className="mt-3 flex flex-wrap gap-2">{areas.slice(0, 15).map((a) => <Link key={a} to="/local/$city/$area/$category" params={{ city: slugify(city), area: slugify(a), category }} className="rounded-lg bg-muted px-3 py-1.5 text-xs font-semibold hover:bg-accent">{a}</Link>)}</div></section>}
+        <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+          {results.length > 0 && <EnquiryForm title={`Get the list of top ${context.toLowerCase()}`} subtitle="Tell us what you need. Your enquiry goes directly to matching businesses." cta="Get free quotes" businessIds={results.slice(0, 5).map((b) => b.id)} directoryStyle />}
+          <a href={directionsUrl(mapQuery)} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-3 rounded-xl border border-[#e0e4e9] bg-white p-4 hover:bg-[#f7f9fb]"><span className="flex items-center gap-2 text-sm font-semibold"><MapPinned className="size-5 text-[#1673d1]" />Explore this area on Maps</span><Navigation className="size-4" /></a>
+          {category && city && areas.length > 0 && <section className="rounded-xl border border-[#e0e4e9] bg-white p-4"><h3 className="text-sm font-bold">Browse by locality</h3><div className="mt-3 flex flex-wrap gap-2">{areas.slice(0, 15).map((a) => <Link key={a} to="/local/$city/$area/$category" params={{ city: slugify(city), area: slugify(a), category }} className="rounded bg-[#f2f4f6] px-2.5 py-1.5 text-xs font-semibold hover:bg-[#e6ebef]">{a}</Link>)}</div></section>}
           {!hasCoordinates && all.length > 0 && <p className="text-xs text-muted-foreground">Distance and nearby filtering require map coordinates supplied for each business.</p>}
         </aside>
       </div>
