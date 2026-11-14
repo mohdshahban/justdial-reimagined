@@ -14,14 +14,14 @@ export function EnquiryPopup({ context, label = "Get best price", buttonClassNam
         <div className="grid md:grid-cols-2">
           <div className="p-5 sm:p-8">
             <DialogHeader className="mb-5 text-left">
-              <DialogTitle className="font-display text-2xl">Enquire about <span className="text-coral">{context.title}</span></DialogTitle>
+              <DialogTitle className="font-display text-2xl">Enquire about <span className="text-[#1673d1]">{context.title}</span></DialogTitle>
               <DialogDescription>Your enquiry goes to {context.businessName}.</DialogDescription>
             </DialogHeader>
-            <EnquiryForm businessId={context.businessId} title="Your requirement" initialMessage={`I'm interested in ${context.title}. Please share details and a quote.`} onSent={() => setOpen(false)} unframed />
+            <EnquiryForm businessId={context.businessId} title="Your requirement" initialMessage={`I'm interested in ${context.title}. Please share details and a quote.`} onSent={() => setOpen(false)} unframed directoryStyle />
           </div>
           <div className="border-t bg-muted p-5 md:border-l md:border-t-0 sm:p-8">
             {context.image && <img src={context.image} alt={context.title} className="aspect-[4/3] w-full rounded-xl object-cover" />}
-            <p className="mt-4 text-xs font-bold uppercase text-coral">{context.businessName}</p>
+            <p className="mt-4 text-xs font-bold uppercase text-[#1673d1]">{context.businessName}</p>
             <h3 className="mt-1 font-display text-xl font-bold">{context.title}</h3>
             {context.location && <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground"><MapPin className="size-4 shrink-0" />{context.location}</p>}
             {context.price && <p className="mt-3 font-bold">{context.price}</p>}
