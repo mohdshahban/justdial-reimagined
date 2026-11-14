@@ -61,7 +61,7 @@ export function MiniBusinessCard({ b }: { b: Business }) {
   return (
     <Link to="/business/$id" params={{ id: b.id }} className="block w-72 shrink-0 overflow-hidden rounded-2xl border bg-card lift">
       <div className="relative aspect-[4/3]">
-        <img src={b.image} alt={b.name} loading="lazy" width={944} height={704} className="size-full object-cover" />
+        <img src={b.image} alt={b.gallery?.length ? b.name : `${getCategory(b.category)?.name ?? "Business"} placeholder graphic`} loading="lazy" width={944} height={704} className="size-full object-cover" />
         {b.open && <span className="absolute left-3 top-3 rounded-full bg-success px-2.5 py-1 text-xs font-bold text-success-foreground">Open now</span>}
       </div>
       <div className="p-4">
@@ -83,7 +83,7 @@ export function BusinessCard({ b }: { b: Business }) {
   return (
     <article className="flex flex-col gap-4 rounded-3xl border bg-card p-4 shadow-soft sm:flex-row">
       <Link to="/business/$id" params={{ id: b.id }} className="relative shrink-0 overflow-hidden rounded-2xl sm:w-56">
-        <img src={b.image} alt={b.name} loading="lazy" width={944} height={704} className="aspect-[4/3] size-full object-cover transition hover:scale-105" />
+        <img src={b.image} alt={b.gallery?.length ? b.name : `${cat?.name ?? "Business"} placeholder graphic`} loading="lazy" width={944} height={704} className="aspect-[4/3] size-full object-cover transition hover:scale-105" />
         {b.sponsored && <span className="absolute left-2 top-2 rounded-md bg-ink/85 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-ink-foreground">Sponsored</span>}
       </Link>
       <div className="flex min-w-0 flex-1 flex-col">
@@ -98,10 +98,10 @@ export function BusinessCard({ b }: { b: Business }) {
           {b.years > 0 && <span className="text-muted-foreground">· {b.years} yrs in business</span>}
         </div>
         <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="size-4" />{b.area}, {b.city}{Number.isFinite(b.distance) && ` · ${b.distance} km`}</p>
-        {!b.gallery?.length && <p className="text-xs text-muted-foreground">Category image · Business photo not provided</p>}
+        {!b.gallery?.length && <p className="text-xs text-muted-foreground">Photo pending · Category placeholder</p>}
         <div className="mt-2 flex flex-wrap gap-1.5">
           <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">{cat?.name} · {b.sub}</span>
-          {b.tags.map((t) => <span key={t} className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">{t}</span>)}
+          {b.tags.slice(0, 4).map((t) => <span key={t} className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">{t}</span>)}
         </div>
         {b.services.length > 0 && <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">{b.services.slice(0, 3).map((service) => <span key={service.name} className="rounded-lg border px-2 py-1">{service.name}{service.price && ` · ${service.price}`}</span>)}</div>}
         {b.highlight && <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{b.highlight}</p>}

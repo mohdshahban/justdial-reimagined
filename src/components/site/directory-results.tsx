@@ -105,7 +105,7 @@ export function DirectoryResults({ businesses, city, category, initialSub = "", 
         </div>
         <aside className="space-y-5 lg:sticky lg:top-36 lg:self-start">
           <a href={directionsUrl(mapQuery)} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-3 rounded-2xl border bg-card p-4 shadow-soft hover:bg-muted"><span className="flex items-center gap-2 font-semibold"><MapPinned className="size-5 text-coral" />Explore this area on Maps</span><Navigation className="size-4" /></a>
-          {results.length > 0 && <EnquiryForm title={`Get quotes from ${Math.min(5, results.length)} businesses`} subtitle={`Tell ${context.toLowerCase()} providers what you need.`} cta="Request free quotes" businessIds={results.slice(0, 5).map((b) => b.id)} />}
+          {results.length > 0 && <EnquiryForm title={`Get quotes from ${Math.min(5, results.length)} ${results.length === 1 ? "business" : "businesses"}`} subtitle={`Share your requirement with ${context.toLowerCase()} providers.`} cta="Request free quotes" businessIds={results.slice(0, 5).map((b) => b.id)} />}
           {category && city && areas.length > 0 && <section className="rounded-2xl border bg-card p-5"><h3 className="font-bold">Browse by locality</h3><div className="mt-3 flex flex-wrap gap-2">{areas.slice(0, 15).map((a) => <Link key={a} to="/local/$city/$area/$category" params={{ city: slugify(city), area: slugify(a), category }} className="rounded-lg bg-muted px-3 py-1.5 text-xs font-semibold hover:bg-accent">{a}</Link>)}</div></section>}
           {!hasCoordinates && all.length > 0 && <p className="text-xs text-muted-foreground">Distance and nearby filtering require map coordinates supplied for each business.</p>}
         </aside>

@@ -74,9 +74,8 @@ function BusinessView({ b }: { b: Business }) {
       else toast.error("Sharing is unavailable. Copy the page URL from your browser.");
     } catch (error) { if ((error as Error).name !== "AbortError") toast.error("Couldn't share this listing."); }
   };
-  const dist = b.live
-    ? [5, 4, 3, 2, 1].map((n) => (b.reviewList.length ? Math.round((b.reviewList.filter((r) => r.rating === n).length / b.reviewList.length) * 100) : 0))
-    : [62, 22, 9, 4, 3];
+  const dist = [5, 4, 3, 2, 1].map((n) => (b.reviewList.length ? Math.round((b.reviewList.filter((r) => r.rating === n).length / b.reviewList.length) * 100) : 0));
+  const landmark = b.landmark?.trim() && b.landmark.trim().toLowerCase() !== b.address?.trim().toLowerCase() ? b.landmark.trim() : "";
   return (
     <div className="container-page pt-6">
       <nav className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground"><Link to="/" className="hover:underline">Home</Link><ChevronRight className="size-4" /><Link to="/category/$slug" params={{ slug: b.category }} className="hover:underline">{cat?.name}</Link><ChevronRight className="size-4" /><span className="text-foreground">{b.name}</span></nav>
@@ -84,7 +83,7 @@ function BusinessView({ b }: { b: Business }) {
       <div className="relative mt-4 grid h-64 grid-cols-4 grid-rows-2 gap-2 overflow-hidden rounded-[2rem] md:h-96">
         <img src={pics[0] ?? b.image} alt={pics.length ? `${b.name} business photo` : `${cat?.name ?? "Business"} category illustration`} width={944} height={704} className={`col-span-4 row-span-2 size-full object-cover ${pics.length > 1 ? "md:col-span-2" : ""}`} />
         {pics.slice(1, 5).map((src, i) => <img key={src} src={src} alt={`${b.name} photo ${i + 2}`} loading="lazy" className="hidden size-full object-cover md:block" />)}
-        {!pics.length && <span className="absolute bottom-4 left-4 rounded-lg bg-ink/85 px-3 py-1.5 text-xs font-semibold text-ink-foreground">Category image · Photos not yet provided</span>}
+        {!pics.length && <span className="absolute bottom-4 left-4 rounded-lg bg-ink/85 px-3 py-1.5 text-xs font-semibold text-ink-foreground">Photo pending · Category placeholder</span>}
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
@@ -100,7 +99,7 @@ function BusinessView({ b }: { b: Business }) {
             <span className="text-muted-foreground">{cat?.name} · {b.sub}{b.years > 0 && ` · ${b.years} yrs in business`}</span>
           </div>
           <div className="mt-3 flex flex-col gap-1.5 text-sm text-muted-foreground">
-            <span className="flex items-center gap-2"><MapPin className="size-4" />{b.address || `${b.area}, ${b.city}`}{b.landmark ? ` · ${b.landmark}` : ""}</span>
+            <span className="flex items-center gap-2"><MapPin className="size-4" />{b.address || `${b.area}, ${b.city}`}{landmark ? ` · ${landmark}` : ""}</span>
             <span className="flex items-center gap-2"><Clock className="size-4" />{b.hours || "Contact business for opening hours"}{b.days?.length ? ` · ${b.days.length === 7 ? "All days" : b.days.join(", ")}` : ""}</span>
             {b.openKnown && <span className={`text-sm font-semibold ${b.open ? "text-success" : "text-muted-foreground"}`}>{b.open ? "Open now" : "Currently closed"} · Based on listed hours</span>}
           </div>
@@ -120,7 +119,7 @@ function BusinessView({ b }: { b: Business }) {
               {["overview", "catalog", "services", "photos", "reviews", "qa"].map((t) => <TabsTrigger key={t} value={t} className="rounded-xl px-4 py-2 capitalize">{t === "qa" ? "Info" : t === "catalog" ? "Products & services" : t}</TabsTrigger>)}
             </TabsList>
             <TabsContent value="overview" className="mt-6 space-y-4">
-              <p className="leading-relaxed">{b.description || <>{b.name} is a trusted {b.sub.toLowerCase()} {cat?.name.toLowerCase()} in {b.area}, {b.city}, serving customers for over {b.years} years. Known for {b.tags.join(", ").toLowerCase()}.</>}</p>
+              <p className="leading-relaxed">{b.description || `${b.name} is listed under ${cat?.name ?? "local businesses"} in ${b.area}, ${b.city}. Contact the business to confirm available services and current details.`}</p>
               <div className="flex flex-wrap gap-2">{b.tags.map((t) => <span key={t} className="rounded-full bg-muted px-3 py-1 text-sm font-medium">{t}</span>)}</div>
               {b.price && <p className="text-sm"><span className="font-bold">Price:</span> {b.price}</p>}
               {!!b.payments?.length && <p className="text-sm"><span className="font-bold">Payments:</span> {b.payments.join(", ")}</p>}
