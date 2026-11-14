@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, MapPin } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { CITIES, getCategory } from "@/data/catalog";
 import { liveBusinessesQ } from "@/lib/public-data";
 import { slugify } from "@/lib/discovery";
@@ -33,12 +33,11 @@ function LocalArchive() {
   const { data: all = [] } = useQuery(liveBusinessesQ);
   const list = all.filter((b) => b.city === city && b.category === category.slug && slugify(b.area) === slugify(area));
   return (
-    <div className="container-page pt-6">
-      <nav className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground"><Link to="/">Home</Link><ChevronRight className="size-4" /><Link to="/category/$slug" params={{ slug: category.slug }} search={{ city }}>{category.name}</Link><ChevronRight className="size-4" />{city}<ChevronRight className="size-4" /><span className="text-foreground">{area}</span></nav>
-      <header className="mt-5 rounded-[2rem] border bg-saffron-soft p-7 md:p-10">
-        <p className="flex items-center gap-2 text-sm font-bold text-coral"><MapPin className="size-4" />Local business directory</p>
-        <h1 className="mt-2 text-3xl font-extrabold md:text-5xl">{category.name} in {area}, {city}</h1>
-        <p className="mt-3 text-muted-foreground">Browse {list.length} approved {list.length === 1 ? "business" : "businesses"}, check services and contact providers directly.</p>
+    <div className="container-page pt-5">
+      <nav className="flex flex-wrap items-center gap-1 text-xs text-[#718096]"><Link to="/">Home</Link><ChevronRight className="size-3.5" /><Link to="/category/$slug" params={{ slug: category.slug }} search={{ city }}>{category.name}</Link><ChevronRight className="size-3.5" />{city}<ChevronRight className="size-3.5" /><span className="text-[#435267]">{area}</span></nav>
+      <header className="mt-3">
+        <h1 className="text-[23px] font-bold leading-tight tracking-tight text-[#1c2b3a] md:text-[26px]">{category.name} in {area}, {city}</h1>
+        <p className="mt-1 text-[13px] text-[#6b7887]">Browse {list.length} approved {list.length === 1 ? "business" : "businesses"}, compare services and contact providers directly.</p>
       </header>
       <DirectoryResults businesses={list} city={city} category={category.slug} initialArea={area} context={category.name} />
       <p className="mt-10 text-sm text-muted-foreground">Looking elsewhere? <Link to="/category/$slug" params={{ slug: category.slug }} search={{ city }} className="font-semibold text-foreground underline">View all {category.name.toLowerCase()} in {city}</Link>.</p>

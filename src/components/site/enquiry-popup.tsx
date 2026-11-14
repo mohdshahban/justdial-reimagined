@@ -5,10 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 
 type EnquiryContext = { businessId: string; businessName: string; title: string; image?: string | undefined; location?: string | undefined; price?: string | undefined; description?: string | undefined };
 
-export function EnquiryPopup({ context, label = "Get best price" }: { context: EnquiryContext; label?: string }) {
+export function EnquiryPopup({ context, label = "Get best price", buttonClassName }: { context: EnquiryContext; label?: string; buttonClassName?: string }) {
   const [open, setOpen] = useState(false);
   return <>
-    <Btn type="button" onClick={() => setOpen(true)}><Send className="size-4" />{label}</Btn>
+    <Btn type="button" onClick={() => setOpen(true)} className={buttonClassName}><Send className="size-4" />{label}</Btn>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-h-[90vh] overflow-y-auto p-0 sm:max-w-4xl">
         <div className="grid md:grid-cols-2">
