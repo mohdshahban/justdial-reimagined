@@ -11,7 +11,11 @@ const tools = [
   { name: "get_admin_overview", description: "Live counts of listings, leads, users and offerings" },
   { name: "list_businesses", description: "Find and inspect current business listings" },
   { name: "list_business_offerings", description: "Inspect products and services by business" },
-  { name: "create_business_draft", description: "Create a pending business for your review" },
+  { name: "get_listing_form_options", description: "Read all business form fields, category slugs and choices" },
+  { name: "get_business_details", description: "Read the full saved profile before editing" },
+  { name: "create_business_draft", description: "Create a pending listing with all form fields" },
+  { name: "update_business_listing", description: "Edit approved or pending listing fields with your approval" },
+  { name: "upload_business_image", description: "Attach a cover, gallery photo or logo from JPG/PNG/WebP bytes" },
   { name: "create_business_offering_draft", description: "Create an unpublished product or service" },
 ];
 
@@ -28,7 +32,7 @@ function Page() {
     <div>
       <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-primary"><PlugZap className="size-4" /> Integrations</div>
       <h1 className="font-display text-3xl font-extrabold">MCP Connector</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Give an authorized AI assistant access to live directory data and let it prepare draft listings for you to review.</p>
+      <p className="mt-2 text-sm text-muted-foreground">Give an authorized AI assistant access to live directory data, complete every listing form field, upload images and prepare business drafts for review.</p>
     </div>
 
     <section className="rounded-3xl border bg-card p-5 sm:p-7">
@@ -40,7 +44,7 @@ function Page() {
       </div>
       <div className="mt-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
         <LockKeyhole className="mt-0.5 size-4 shrink-0" />
-        <p>Only signed-in users with your database <strong>admin</strong> role can use these tools. Business creation stays <strong>pending</strong>; offerings stay <strong>unpublished</strong>. No delete or approval tools are exposed.</p>
+        <p>Only signed-in users with your database <strong>admin</strong> role can use these tools. Business creation stays <strong>pending</strong>; offerings stay <strong>unpublished</strong>. Editing an approved listing changes its public details immediately, so approve its exact content before using write tools. No delete or approval tools are exposed.</p>
       </div>
     </section>
 
@@ -57,6 +61,7 @@ function Page() {
 
     <section className="rounded-3xl border bg-card p-5 sm:p-7">
       <h2 className="text-lg font-bold">Available tools</h2>
+      <p className="mt-2 text-sm text-muted-foreground">For a full profile, call <code>get_listing_form_options</code>, then create or update the listing. Upload images up to 3 MB as base64 JPG, PNG or WebP using <code>upload_business_image</code>; the tool attaches them to the listing automatically. Contact details, prices and images must come from verified sources.</p>
       <div className="mt-3 divide-y">
         {tools.map(tool => <div key={tool.name} className="py-3"><code className="text-sm font-semibold text-foreground">{tool.name}</code><p className="mt-1 text-sm text-muted-foreground">{tool.description}</p></div>)}
       </div>

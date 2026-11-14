@@ -7,6 +7,10 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
+import { businessDraftInput, businessUpdateInput, listingFormOptions, normalizeCategory, normalizeCity, validateSpeciality } from "./mcp-listing-fields";
+import { decodeMcpImage, MCP_IMAGE_LIMIT, MCP_IMAGE_MIME } from "./mcp-image";
+
+const BUSINESS_FIELDS = "id,name,category,sub,year_established,price,description,tags,city,area,address,landmark,pincode,phone,whatsapp,email,website,days_open,hours,payment_methods,services,photos,logo,status,created_at,updated_at";
 
 const SUPABASE_URL = process.env["SUPABASE_URL"] || process.env["VITE_SUPABASE_URL"];
 const SUPABASE_KEY = process.env["SUPABASE_PUBLISHABLE_KEY"] || process.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
@@ -55,8 +59,18 @@ async function adminClient(request: Request) {
 
 type AdminDb = ReturnType<typeof createClient<Database>>;
 
+async function verifyStoredImages(db: AdminDb, photos: string[] = [], logo?: string | null) {
+  const paths = [...new Set([...photos, ...(logo ? [logo] : [])])];
+  if (!paths.length) return null;
+  const { data, error } = await db.storage.from("business-photos").createSignedUrls(paths, 60);
+  if (error || data?.length !== paths.length || data.some(image => !image.signedUrl)) {
+    return "One or more photo/logo paths do not exist or are not accessible. Upload the image first.";
+  }
+  return null;
+}
+
 function makeServer(db: AdminDb, userId: string) {
-  const server = new McpServer({ name: "justdial-admin", version: "1.0.0" });
+  const server = new McpServer({ name: "justdial-admin", version: "1.1.0" });
 
   server.registerTool("get_admin_overview", {
     description: "Read live database counts for approved/pending businesses, users, leads and products/services.",
@@ -98,26 +112,100 @@ function makeServer(db: AdminDb, userId: string) {
     return error ? failure(error.message) : result({ offerings: data ?? [] });
   });
 
+  server.registerTool("get_listing_form_options", {
+    description: "Read the exact admin business-form fields, category slugs, specialities, cities, days, payment methods and image limits. Call before creating or editing listings.",
+    inputSchema: {},
+    annotations: { readOnlyHint: true },
+  }, async () => result(listingFormOptions()));
+
+  server.registerTool("get_business_details", {
+    description: "Read a business listing's complete editable fields, including saved services, photo paths and logo path, before making a partial update. Admin-only.",
+    inputSchema: { business_id: z.string().uuid() },
+    annotations: { readOnlyHint: true },
+  }, async ({ business_id }) => {
+    const { data, error } = await db.from("businesses").select(BUSINESS_FIELDS).eq("id", business_id).maybeSingle();
+    if (error) return failure(error.message);
+    return data ? result({ business: data }) : failure("Business not found");
+  });
+
   server.registerTool("create_business_draft", {
-    description: "CREATE a new business as PENDING, never live. Ask the user to explicitly approve the exact business details before calling this tool. Do not invent addresses, contacts or other business facts.",
-    inputSchema: {
-      name: z.string().trim().min(2).max(150),
-      category: z.string().trim().min(2).max(120),
-      city: z.string().trim().min(2).max(120),
-      area: z.string().trim().max(150).optional(),
-      address: z.string().trim().max(500).optional(),
-      description: z.string().trim().max(3000).optional(),
-      phone: z.string().trim().max(25).optional(),
-      website: z.string().url().max(500).optional(),
-    },
+    description: "CREATE a business as a PENDING draft, never live. Accepts all admin listing-form details: category, speciality, locality, contact, timings, services, highlights, photos and logo. Call get_listing_form_options first. Ask for explicit approval of the exact content; never invent business facts or prices. Incomplete drafts are allowed but cannot be published through this tool.",
+    inputSchema: businessDraftInput,
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
   }, async (input) => {
+    let category: string;
+    let city: string;
+    try {
+      category = normalizeCategory(input.category);
+      city = normalizeCity(input.city);
+      validateSpeciality(category, input.sub ?? "");
+    } catch (error) { return failure(error instanceof Error ? error.message : "Invalid listing options"); }
+    const imageError = await verifyStoredImages(db, input.photos, input.logo);
+    if (imageError) return failure(imageError);
     const { data, error } = await db.from("businesses").insert({
-      ...input, owner_id: userId, status: "pending",
-    }).select("id,name,city,status").single();
+      ...input, category, city, owner_id: userId, status: "pending",
+    }).select(BUSINESS_FIELDS).single();
     if (error) return failure(error.message);
     console.info("[mcp] created pending business", data.id);
     return result({ created: true, business: data, next_step: "Review and approve this business in Admin → Businesses before publication." });
+  });
+
+  server.registerTool("update_business_listing", {
+    description: "UPDATE ONLY provided editable fields on an existing listing. The same fields as the admin creation form are supported, including saved photo paths, logo and services; arrays replace their complete old values. Never change status, owner, verification or paid flags. Approved listings change publicly immediately; get explicit user approval for the exact update before calling. Do not invent missing contact details.",
+    inputSchema: businessUpdateInput,
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true },
+  }, async ({ business_id, changes }) => {
+    const { data: current, error: readError } = await db.from("businesses").select("id,name,category,sub,status").eq("id", business_id).maybeSingle();
+    if (readError) return failure(readError.message);
+    if (!current) return failure("Business not found");
+    const patch = { ...changes };
+    try {
+      if (patch.category !== undefined) {
+        patch.category = normalizeCategory(patch.category);
+        // The browser form clears a speciality whenever category changes.
+        if (patch.category !== current.category && patch.sub === undefined) patch.sub = "";
+      }
+      if (patch.city !== undefined) patch.city = normalizeCity(patch.city);
+      validateSpeciality(patch.category ?? current.category, patch.sub ?? (patch.category === undefined ? current.sub : ""));
+    } catch (error) { return failure(error instanceof Error ? error.message : "Invalid listing options"); }
+    if (patch.photos !== undefined || patch.logo) {
+      const imageError = await verifyStoredImages(db, patch.photos, patch.logo);
+      if (imageError) return failure(imageError);
+    }
+    const { data, error } = await db.from("businesses").update(patch).eq("id", business_id).select(BUSINESS_FIELDS).single();
+    if (error) return failure(error.message);
+    console.info("[mcp] updated listing", business_id, Object.keys(patch));
+    return result({ updated: true, changed_fields: Object.keys(patch), public_immediately: current.status === "approved", business: data });
+  });
+
+  server.registerTool("upload_business_image", {
+    description: "UPLOAD and attach a user-authorized JPG/PNG/WebP image (max 3 MB due to MCP request-body limits) to an existing listing as cover photo, gallery photo or logo. Provide raw base64 bytes, not a URL. Requires explicit user approval of the image and listing; approved listings change publicly immediately. Storage stays private; no arbitrary external URL fetching.",
+    inputSchema: {
+      business_id: z.string().uuid(),
+      kind: z.enum(["cover", "photo", "logo"]),
+      mime_type: z.enum(["image/jpeg", "image/png", "image/webp"]),
+      image_base64: z.string().min(1).max(Math.ceil(MCP_IMAGE_LIMIT * 4 / 3) + 4),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+  }, async ({ business_id, kind, mime_type, image_base64 }) => {
+    const { data: current, error: readError } = await db.from("businesses").select("id,name,status,photos,logo").eq("id", business_id).maybeSingle();
+    if (readError) return failure(readError.message);
+    if (!current) return failure("Business not found");
+    if (kind !== "logo" && current.photos.length >= 10) return failure("Business already has 10 photos. Choose an existing image to replace in the admin editor.");
+    let bytes: Uint8Array;
+    try { bytes = decodeMcpImage(image_base64, mime_type); } catch (error) { return failure(error instanceof Error ? error.message : "Invalid image"); }
+    const path = `${userId}/${crypto.randomUUID()}.${MCP_IMAGE_MIME[mime_type]}`;
+    const { error: uploadError } = await db.storage.from("business-photos").upload(path, bytes, { contentType: mime_type, upsert: false });
+    if (uploadError) return failure(`Image upload failed: ${uploadError.message}`);
+    const photos = kind === "cover" ? [path, ...current.photos] : [...current.photos, path];
+    const patch = kind === "logo" ? { logo: path } : { photos };
+    const { data, error } = await db.from("businesses").update(patch).eq("id", business_id).select("id,name,status,photos,logo").single();
+    if (error) {
+      await db.storage.from("business-photos").remove([path]);
+      return failure(`Image uploaded but could not be attached: ${error.message}`);
+    }
+    console.info("[mcp] attached business image", business_id, kind);
+    return result({ uploaded: true, kind, storage_path: path, business: data, public_immediately: current.status === "approved" });
   });
 
   server.registerTool("create_business_offering_draft", {
